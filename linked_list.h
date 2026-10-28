@@ -60,4 +60,6 @@ ListStatus     LinkedListVerify        (LinkedList* linked_lst);
 
 void           LinkedListDump          (LinkedList* linked_lst, const char* file, int line, const char* func);
 
+void           LinkedListDestroy       (LinkedList* linked_lst);
+
 #endif

@@ -26,13 +26,16 @@ int LinkedListInit(LinkedList* linked_lst, int capacity)
         linked_lst->data[i].prev = -1;
     }
 
+    #ifdef DUMP_EACH_STEP
+    LINKED_LIST_DUMP(linked_lst);
+    #endif
+
     return 0;
 }
 
 void PrintLinkedList(LinkedList* linked_lst)
 {
     assert(linked_lst);
-    ASSERT_LIST_OK(linked_lst);
 
     printf("\nLinked list elems:\n");
     if (linked_lst->capacity <= 0)
@@ -43,15 +46,23 @@ void PrintLinkedList(LinkedList* linked_lst)
 
     printf("\nseq_index   data_index  value   prev    next\n");
 
+    int elem_counter = 0;
     int curr_idx = linked_lst->head;
 
-    for (int i = 0; i < linked_lst->capacity; i++)
+    while (curr_idx != -1)
     {   
-        if (curr_idx == -1) return;
+        if (elem_counter >= linked_lst->capacity)
+        {
+            PRINT_RED("Loop found - PrintLinkedList is stopped\n");
+            break; 
+        }
 
         LinkedListElem* curr_elem = &linked_lst->data[curr_idx];
-        printf("%5d %10d %10d %8d %6d\n", i, curr_idx, curr_elem->value, curr_elem->prev, curr_elem->next);
+        
+        printf("%9d %11d %6d %6d %7d\n", elem_counter, curr_idx, curr_elem->value, curr_elem->prev, curr_elem->next);
+        
         curr_idx = curr_elem->next;
+        elem_counter++;
     }
 }
 
@@ -136,6 +147,10 @@ int LinkedListAppend(LinkedList* linked_lst, list_elem_t value)
         linked_lst->tail = free_idx;
     }
 
+    #ifdef DUMP_EACH_STEP
+    LINKED_LIST_DUMP(linked_lst);
+    #endif
+
     linked_lst->size++;
     return 0;
 }
@@ -170,6 +185,10 @@ int LinkedListPrepend(LinkedList* linked_lst, list_elem_t value)
         linked_lst->data[free_idx].next = linked_lst->head;
         linked_lst->head = free_idx;
     }
+
+    #ifdef DUMP_EACH_STEP
+    LINKED_LIST_DUMP(linked_lst);
+    #endif
 
     linked_lst->size++;
     return 0;
@@ -234,6 +253,10 @@ int LinkedListInsert(LinkedList* linked_lst, list_elem_t value, int seq_idx)
         linked_lst->data[curr_on_seq_idx].prev = free_idx;
     }
 
+    #ifdef DUMP_EACH_STEP
+    LINKED_LIST_DUMP(linked_lst);
+    #endif
+
     linked_lst->size++;
     return 0;
 }
@@ -284,6 +307,10 @@ int LinkedListDelete(LinkedList* linked_lst, int seq_idx)
         linked_lst->data[prev_del_idx].next = next_del_idx;
         linked_lst->data[next_del_idx].prev = prev_del_idx;
     }
+
+    #ifdef DUMP_EACH_STEP
+    LINKED_LIST_DUMP(linked_lst);
+    #endif
 
     linked_lst->size--;
     return 0;
@@ -384,4 +411,32 @@ void LinkedListDump(LinkedList* linked_lst, const char* file, int line, const ch
     else    PRINT_RED("CANNOT READ DATA\n");
 
     printf("----------------------------------------------\n");
+
+    PRINT_BLUE("MOVE TO NEXT STEP after current LINKED_LIST_DUMP: ");
+    getchar();
 }
+
+void LinkedListDestroy(LinkedList* linked_lst)
+{
+    if (linked_lst == NULL)  return;
+
+    ASSERT_LIST_OK(linked_lst);
+
+    if (linked_lst->data != NULL)
+    {   
+        for (int i = 0; i < linked_lst->capacity; i++)
+        {
+            linked_lst->data[i].value = EMPTY;
+            linked_lst->data[i].next  = -1;
+            linked_lst->data[i].prev  = -1;
+        }
+
+        free(linked_lst->data);
+        linked_lst->data = NULL;
+    }
+
+    linked_lst->size = 0;
+    linked_lst->capacity = 0;
+    linked_lst->head = -1;
+    linked_lst->tail = -1;
+} 
