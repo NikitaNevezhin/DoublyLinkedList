@@ -7,7 +7,7 @@ int main(void)
 
     for (int i = 1; i < 10; i++) LinkedListAppend(&linked_lst, i * 10);
 
-    linked_lst.capacity = -1;
+    linked_lst.data[2].next = 1;
 
     LINKED_LIST_DUMP(&linked_lst);
 

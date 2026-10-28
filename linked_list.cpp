@@ -26,8 +26,6 @@ int LinkedListInit(LinkedList* linked_lst, int capacity)
         linked_lst->data[i].prev = -1;
     }
 
-
-
     return 0;
 }
 
@@ -46,7 +44,7 @@ void PrintLinkedList(LinkedList* linked_lst)
 
     int curr_idx = linked_lst->head;
 
-    for (int i = 0; i < linked_lst->size; i++)
+    for (int i = 0; i < linked_lst->capacity; i++)
     {   
         if (curr_idx == -1) return;
 
@@ -285,6 +283,8 @@ int LinkedListDelete(LinkedList* linked_lst, int seq_idx)
 
 ListStatus LinkedListVerify(LinkedList* linked_lst)
 {
+    assert(linked_lst);
+    
     if (linked_lst == NULL)
         return LIST_NULL;  // immediately return LIST_NULL as we cannot check anything below (bro, list is NULL)
 
@@ -303,6 +303,47 @@ ListStatus LinkedListVerify(LinkedList* linked_lst)
 
     if (linked_lst->capacity > 0 && linked_lst->size > linked_lst->capacity)
         status |= LIST_OVERFLOW;
+
+    if (status & DATA_NULL || status & NON_POSITIVE_CAPACITY)   return (ListStatus)status; // no sense to check anything below
+
+    // check empty list
+    if (linked_lst->size == 0)
+    {
+        if (linked_lst->head != -1 || linked_lst->tail != -1)
+            status |= LIST_LINKING_ERROR;
+        return (ListStatus)status;
+    }
+
+    if (linked_lst->data[linked_lst->head].prev != -1)
+        status |= LIST_LINKING_ERROR;
+
+    if (linked_lst->data[linked_lst->tail].next != -1)
+        status |= LIST_LINKING_ERROR;
+
+    // iterate through the list
+    int curr_idx = linked_lst->head;
+    int elem_counter = 0;
+
+    while (curr_idx != -1)
+    {
+        elem_counter++;
+        
+        if (elem_counter > linked_lst->size)
+        {
+            status |= LIST_FOUND_LOOP;
+            break;
+        }
+
+        int next_idx = linked_lst->data[curr_idx].next;
+
+        if (next_idx == -1 && linked_lst->tail != curr_idx)
+            status |= LIST_LINKING_ERROR;
+
+        else if (next_idx != -1 && linked_lst->data[next_idx].prev != curr_idx)
+            status |= LIST_LINKING_ERROR;
+
+        curr_idx = next_idx;
+    }
 
     return (ListStatus)status;  // converting to ERROR_STATUS after working with int
 }

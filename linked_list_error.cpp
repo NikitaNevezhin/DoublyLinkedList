@@ -16,6 +16,10 @@ const char* GetErrorString(ListStatus list_status)
 
         case LIST_NULL:             return RED "LIST_NULL" RESET;
 
+        case LIST_LINKING_ERROR:    return RED "LIST_LINKING_ERROR" RESET;
+
+        case LIST_FOUND_LOOP:       return RED "LIST_FOUND_POOP" RESET;
+
         default:                    return RED "You are seriously fucked up, man" RESET;
     }
 }
@@ -51,6 +55,8 @@ void PrintAllErrors(ListStatus list_status)
     PrintError(list_status, LIST_UNDERFLOW, &first);
     PrintError(list_status, DATA_NULL, &first);
     PrintError(list_status, NON_POSITIVE_CAPACITY, &first);
+    PrintError(list_status, LIST_LINKING_ERROR, &first);
+    PrintError(list_status, LIST_FOUND_LOOP, &first);
 }
 
 void ProcessError(ListStatus list_status)
@@ -61,6 +67,8 @@ void ProcessError(ListStatus list_status)
     if (list_status & LIST_UNDERFLOW)        PRINT_RED("Error: ListUnderFlowError\n" );
     if (list_status & DATA_NULL)             PRINT_RED("Error: List data is NULL pointer!\n" );
     if (list_status & NON_POSITIVE_CAPACITY) PRINT_RED("Error: List capacity is not positive\n" );
+    if (list_status & LIST_LINKING_ERROR)    PRINT_RED("Error: Some links between elems are invalid\n" );
+    if (list_status & LIST_FOUND_LOOP)       PRINT_RED("Error: List contains loop\n" );
 
     return;
 }

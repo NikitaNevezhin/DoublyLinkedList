@@ -16,6 +16,9 @@ enum ListStatus
     LIST_UNDERFLOW = 1 << 3,
     NON_POSITIVE_CAPACITY = 1 << 4,
     LIST_NULL = 1 << 5,
+
+    LIST_LINKING_ERROR = 1 << 6,
+    LIST_FOUND_LOOP = 1 << 7,
 };
 
 const char*     GetErrorString      (ListStatus list_status);
