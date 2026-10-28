@@ -32,6 +32,7 @@ int LinkedListInit(LinkedList* linked_lst, int capacity)
 void PrintLinkedList(LinkedList* linked_lst)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     printf("\nLinked list elems:\n");
     if (linked_lst->capacity <= 0)
@@ -58,6 +59,7 @@ void PrintLinkedList(LinkedList* linked_lst)
 int FindFreeIndex(LinkedList* linked_lst)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     if (linked_lst->size == linked_lst->capacity)
         return -1;
@@ -74,6 +76,7 @@ int FindFreeIndex(LinkedList* linked_lst)
 int GetDataIndex(LinkedList* linked_lst, int seq_idx)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     if (seq_idx < 0 || seq_idx >= linked_lst->size)
     {
@@ -92,6 +95,7 @@ int GetDataIndex(LinkedList* linked_lst, int seq_idx)
 int LinkedListGetValue(LinkedList* linked_lst, int seq_idx)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     if (seq_idx < 0 || seq_idx >= linked_lst->size)
     {
@@ -105,6 +109,7 @@ int LinkedListGetValue(LinkedList* linked_lst, int seq_idx)
 int LinkedListAppend(LinkedList* linked_lst, list_elem_t value)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     int free_idx = FindFreeIndex(linked_lst);
 
@@ -138,6 +143,7 @@ int LinkedListAppend(LinkedList* linked_lst, list_elem_t value)
 int LinkedListPrepend(LinkedList* linked_lst, list_elem_t value)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     int free_idx = FindFreeIndex(linked_lst);
 
@@ -172,6 +178,7 @@ int LinkedListPrepend(LinkedList* linked_lst, list_elem_t value)
 int LinkedListInsert(LinkedList* linked_lst, list_elem_t value, int seq_idx)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     if (seq_idx < 0 || seq_idx > linked_lst->size)
     {
@@ -234,6 +241,7 @@ int LinkedListInsert(LinkedList* linked_lst, list_elem_t value, int seq_idx)
 int LinkedListDelete(LinkedList* linked_lst, int seq_idx)
 {
     assert(linked_lst);
+    ASSERT_LIST_OK(linked_lst);
 
     if (seq_idx < 0 || seq_idx >= linked_lst->size)
     {
@@ -371,7 +379,9 @@ void LinkedListDump(LinkedList* linked_lst, const char* file, int line, const ch
 
     printf("data [" GREEN "%p" RESET "]\n", linked_lst->data);
 
-    PrintLinkedList(linked_lst);
+    if (!(list_status & NON_POSITIVE_CAPACITY || list_status & DATA_NULL))  PrintLinkedList(linked_lst);
+
+    else    PRINT_RED("CANNOT READ DATA\n");
 
     printf("----------------------------------------------\n");
 }

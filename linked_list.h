@@ -8,6 +8,7 @@
 
 #include "UTILS/PrintColor.h"
 #include "linked_list_error.h"
+#include "assert_list_ok.h"
 
 typedef int list_elem_t;
 

@@ -69,6 +69,7 @@ void ProcessError(ListStatus list_status)
     if (list_status & NON_POSITIVE_CAPACITY) PRINT_RED("Error: List capacity is not positive\n" );
     if (list_status & LIST_LINKING_ERROR)    PRINT_RED("Error: Some links between elems are invalid\n" );
     if (list_status & LIST_FOUND_LOOP)       PRINT_RED("Error: List contains loop\n" );
-
+    abort();
+    
     return;
 }
