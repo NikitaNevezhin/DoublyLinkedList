@@ -1,4 +1,4 @@
-#include "linked_list_error.h"
+#include "list_error.h"
 
 const char* GetErrorString(ListStatus list_status) 
 {

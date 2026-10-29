@@ -1,24 +1,24 @@
-#include "linked_list.h"
+#include "list/list.h"
 
 int main(void)
 {
-    LinkedList linked_lst = {};
-    LinkedListInit(&linked_lst, 20);
-    // LINKED_LIST_DUMP(&linked_lst);
+    List list = {};
+    ListInit(&list, 20);
+    // LINKED_LIST_DUMP(&list);
 
 
-    for (int i = 0; i < 10; i++) LinkedListAppend(&linked_lst, i * 10);
+    for (int i = 0; i < 10; i++) ListAppend(&list, i * 10);
 
-    // linked_lst.capacity = -1;
+    // list.capacity = -1;
 
-    for (int i = 0; i < 10; i++) LinkedListAppend(&linked_lst, i * 10);    
+    for (int i = 0; i < 10; i++) ListAppend(&list, 2 * 10);    
 
-    // linked_lst.data[2].next = 1;
-    // LinkedListInsert(&linked_lst, 69, 10);
+    // list.data[2].next = 1;
+    // ListInsert(&list, 69, 10);
 
-    LINKED_LIST_DUMP(&linked_lst);
+    LIST_DUMP(&list);
 
-    LinkedListDestroy(&linked_lst);
+    ListDestroy(&list);
 
     return EXIT_SUCCESS;
 }

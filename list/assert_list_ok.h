@@ -6,17 +6,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "linked_list.h"
-#include "linked_list_error.h"
+#include "list.h"
+#include "list_error.h"
 
     
-#define ASSERT_LIST_OK(lst)                                                                     \
+#define ASSERT_LIST_OK(list)                                                                     \
     do                                                                                          \
     {                                                                                           \
-        ListStatus list_status = LinkedListVerify(lst);                                         \
+        ListStatus list_status = ListVerify(list);                                               \
         if (list_status != OKAY)                                                                \
         {                                                                                       \
-            LINKED_LIST_DUMP(lst);                                                              \
+            LIST_DUMP(list);                                                                     \
             ProcessError(list_status);                                                          \
         }                                                                                       \
     } while (0);
