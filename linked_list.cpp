@@ -19,12 +19,14 @@ int LinkedListInit(LinkedList* linked_lst, int capacity)
     linked_lst->head = -1;
     linked_lst->tail = -1;
 
-    for (int i = 0; i < capacity; i++) 
+    for (int i = 0; i < capacity - 1; i++) // the last elem is processed separately
     {
         linked_lst->data[i].value = EMPTY;
-        linked_lst->data[i].next = -1;
+        linked_lst->data[i].next = i + 1;
         linked_lst->data[i].prev = -1;
     }
+
+    linked_lst->data[capacity - 1].next = -1; // last elem has no next elem
 
     #ifdef DUMP_EACH_STEP
     LINKED_LIST_DUMP(linked_lst);
@@ -67,21 +69,17 @@ void PrintLinkedList(LinkedList* linked_lst)
 }
 
 
-int FindFreeIndex(LinkedList* linked_lst)
+int GetFreeIndex(LinkedList* linked_lst)
 {
     assert(linked_lst);
     ASSERT_LIST_OK(linked_lst);
 
-    if (linked_lst->size == linked_lst->capacity)
-        return -1;
+    int free_idx = linked_lst->free_head;
 
-    for (int i = 0; i < linked_lst->capacity; i++)
-    {
-        if (linked_lst->data[i].value == EMPTY)
-            return i;
-    }
+    if (free_idx != -1)
+        linked_lst->free_head = linked_lst->data[free_idx].next;
 
-    return -1;
+    return free_idx;
 }
 
 int GetDataIndex(LinkedList* linked_lst, int seq_idx)
@@ -122,11 +120,13 @@ int LinkedListAppend(LinkedList* linked_lst, list_elem_t value)
     assert(linked_lst);
     ASSERT_LIST_OK(linked_lst);
 
-    int free_idx = FindFreeIndex(linked_lst);
+    int free_idx = GetFreeIndex(linked_lst);
 
     if (free_idx == -1)
     {
         PRINT_RED("LinkedListOverFlow: cannot insert new value into full list\n");
+        linked_lst->size++; // manually creating OverFlow
+        ASSERT_LIST_OK(linked_lst);
         return 1;
     }
 
@@ -137,6 +137,7 @@ int LinkedListAppend(LinkedList* linked_lst, list_elem_t value)
         linked_lst->head = free_idx;
         linked_lst->tail = free_idx;
         linked_lst->data[free_idx].prev = -1;
+        linked_lst->data[free_idx].next = -1;
     }
 
     else
@@ -152,6 +153,7 @@ int LinkedListAppend(LinkedList* linked_lst, list_elem_t value)
     #endif
 
     linked_lst->size++;
+    ASSERT_LIST_OK(linked_lst);
     return 0;
 }
 
@@ -160,11 +162,13 @@ int LinkedListPrepend(LinkedList* linked_lst, list_elem_t value)
     assert(linked_lst);
     ASSERT_LIST_OK(linked_lst);
 
-    int free_idx = FindFreeIndex(linked_lst);
+    int free_idx = GetFreeIndex(linked_lst);
 
     if (free_idx == -1)
     {
         PRINT_RED("LinkedListOverFlow: cannot insert new value into full list\n");
+        linked_lst->size++; // manually creating OverFlow
+        ASSERT_LIST_OK(linked_lst);
         return 1;
     }
 
@@ -205,11 +209,13 @@ int LinkedListInsert(LinkedList* linked_lst, list_elem_t value, int seq_idx)
         return 1;
     }
 
-    int free_idx = FindFreeIndex(linked_lst);
+    int free_idx = GetFreeIndex(linked_lst);
 
     if (free_idx == -1)
     {
         PRINT_RED("LinkedListOverFlow: cannot insert new value into full list\n");
+        linked_lst->size++; // manually creating OverFlow
+        ASSERT_LIST_OK(linked_lst);
         return 1;
     }
 
@@ -277,10 +283,11 @@ int LinkedListDelete(LinkedList* linked_lst, int seq_idx)
     int prev_del_idx = linked_lst->data[data_del_idx].prev;
     int next_del_idx = linked_lst->data[data_del_idx].next;
 
-    // destroying links of deleted elem
+    // destroying links of deleted elem and putting it as a head of free elems
     linked_lst->data[data_del_idx].value = EMPTY;
     linked_lst->data[data_del_idx].prev = -1;
-    linked_lst->data[data_del_idx].next = -1;
+    linked_lst->data[data_del_idx].next = linked_lst->free_head;
+    linked_lst->free_head = data_del_idx;
 
 
 
@@ -403,6 +410,9 @@ void LinkedListDump(LinkedList* linked_lst, const char* file, int line, const ch
 
     printf("Size:      %d\n", linked_lst->size);
     printf("Capacity:  %d\n", linked_lst->capacity);
+    printf("Head:      %d\n", linked_lst->head);
+    printf("Tail:      %d\n", linked_lst->tail);
+    printf("Free head: %d\n", linked_lst->free_head);
 
     printf("data [" GREEN "%p" RESET "]\n", linked_lst->data);
 

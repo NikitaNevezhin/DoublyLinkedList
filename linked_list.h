@@ -34,6 +34,7 @@ struct LinkedList
 
     int tail;           // index in data!!!!
     int head;           // index in data!!!!
+    int free_head;      // index in data!!!!
 };
 
 #define LINKED_LIST_DUMP(linked_lst)  LinkedListDump(linked_lst, __FILE__, __LINE__, __func__)
@@ -42,7 +43,7 @@ int            LinkedListInit          (LinkedList* linked_lst, int capacity);
 
 void           PrintLinkedList         (LinkedList* linked_lst);
         
-int            FindFreeIndex           (LinkedList* linked_lst);  // returns index from data
+int            GetFreeIndex            (LinkedList* linked_lst);  // returns index from data
         
 int            GetDataIndex            (LinkedList* linked_lst, int seq_idx);
         
