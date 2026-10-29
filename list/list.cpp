@@ -37,7 +37,7 @@ int ListInit(List* list, int capacity)
     return 0;
 }
 
-void PrintList(List* list)
+void ListPrint(List* list)
 {
     assert(list);
 
@@ -57,7 +57,7 @@ void PrintList(List* list)
     {   
         if (elem_counter >= list->capacity)
         {
-            PRINT_RED("Loop found - PrintList is stopped\n");
+            PRINT_RED("Loop found - ListPrint is stopped\n");
             break; 
         }
 
@@ -71,7 +71,7 @@ void PrintList(List* list)
 }
 
 
-int GetFreeIndex(List* list)
+int ListGetFreeIndex(List* list)
 {
     assert(list);
     ASSERT_LIST_OK(list);
@@ -84,7 +84,7 @@ int GetFreeIndex(List* list)
     return free_idx;
 }
 
-int GetDataIndex(List* list, int seq_idx)
+int ListGetDataIndex(List* list, int seq_idx)
 {
     assert(list);
     ASSERT_LIST_OK(list);
@@ -117,7 +117,7 @@ int ListGetValue(List* list, int seq_idx)
         return EMPTY;
     }
     
-    return list->data[GetDataIndex(list, seq_idx)].value;
+    return list->data[ListGetDataIndex(list, seq_idx)].value;
 }
 
 int ListAppend(List* list, list_elem_t value)
@@ -125,7 +125,7 @@ int ListAppend(List* list, list_elem_t value)
     assert(list);
     ASSERT_LIST_OK(list);
 
-    int free_idx = GetFreeIndex(list);
+    int free_idx = ListGetFreeIndex(list);
 
     if (free_idx == -1)
     {
@@ -167,7 +167,7 @@ int ListPrepend(List* list, list_elem_t value)
     assert(list);
     ASSERT_LIST_OK(list);
 
-    int free_idx = GetFreeIndex(list);
+    int free_idx = ListGetFreeIndex(list);
 
     if (free_idx == -1)
     {
@@ -215,7 +215,7 @@ int ListInsert(List* list, list_elem_t value, int seq_idx)
         return 1;
     }
 
-    int free_idx = GetFreeIndex(list);
+    int free_idx = ListGetFreeIndex(list);
 
     if (free_idx == -1)
     {
@@ -253,7 +253,7 @@ int ListInsert(List* list, list_elem_t value, int seq_idx)
 
     else
     {
-        int curr_on_seq_idx = GetDataIndex(list, seq_idx);
+        int curr_on_seq_idx = ListGetDataIndex(list, seq_idx);
         int curr_prev = list->data[curr_on_seq_idx].prev;
         
         // linking new elem
@@ -286,7 +286,7 @@ int ListRemove(List* list, int seq_idx)
         return 1;
     }
 
-    int data_del_idx = GetDataIndex(list, seq_idx);
+    int data_del_idx = ListGetDataIndex(list, seq_idx);
 
     int prev_del_idx = list->data[data_del_idx].prev;
     int next_del_idx = list->data[data_del_idx].next;
@@ -488,7 +488,7 @@ void ListDump(List* list, const char* file, int line, const char* func)
 
     printf("data [" GREEN "%p" RESET "]\n", list->data);
 
-    if (!(list_status & NON_POSITIVE_CAPACITY || list_status & DATA_NULL))  PrintList(list);
+    if (!(list_status & NON_POSITIVE_CAPACITY || list_status & DATA_NULL))  ListPrint(list);
 
     else    PRINT_RED("CANNOT READ DATA\n");
 

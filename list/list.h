@@ -43,11 +43,11 @@ struct List
 
 int            ListInit          (List* list, int capacity);
 
-void           PrintList         (List* list);
+void           ListPrint         (List* list);
         
-int            GetFreeIndex      (List* list);  // returns index from data
+int            ListGetFreeIndex  (List* list);  // returns index from data
         
-int            GetDataIndex      (List* list, int seq_idx);
+int            ListGetDataIndex  (List* list, int seq_idx);
         
 int            ListGetValue      (List* list, int seq_idx);
         
