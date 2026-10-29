@@ -18,6 +18,7 @@ int ListInit(List* list, int capacity)
 
     list->head = -1;
     list->tail = -1;
+    list->free_head = 0;
 
     for (int i = 0; i < capacity - 1; i++) // the last elem is processed separately
     {
@@ -369,6 +370,29 @@ int ListRfindValue(List* list, list_elem_t value)
     }
 
     return last_seen;    
+}
+
+int ListClear(List* list)
+{
+    assert(list);
+    ASSERT_LIST_OK(list);
+
+    list->size = 0;
+    list->head = -1;
+    list->tail = -1;
+    list->free_head = 0;
+
+    for (int i = 0; i < list->capacity - 1; i++) // the last elem is processed separately
+    {
+        list->data[i].value = EMPTY;
+        list->data[i].next = i + 1;
+        list->data[i].prev = -1;
+    }
+
+    list->data[list->capacity - 1].next = -1; // last elem has no next elem
+
+    ASSERT_LIST_OK(list);
+    return 0;
 }
 
 ListStatus ListVerify(List* list)

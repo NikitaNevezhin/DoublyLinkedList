@@ -63,6 +63,8 @@ int            ListFindValue     (List* list, list_elem_t value);  // returns se
 
 int            ListRfindValue    (List* list, list_elem_t value);  // returns seq_index
 
+int            ListClear         (List* list);
+
 ListStatus     ListVerify        (List* list);
 
 void           ListDump          (List* list, const char* file, int line, const char* func);
