@@ -10,13 +10,13 @@
 #include "list_error.h"
 
     
-#define ASSERT_LIST_OK(list)                                                                     \
+#define ASSERT_LIST_OK(list)                                                                    \
     do                                                                                          \
     {                                                                                           \
-        ListStatus list_status = ListVerify(list);                                               \
-        if (list_status != OKAY)                                                                \
+        ListStatus list_status = ListVerify(list);                                              \
+        if (list_status != OKAY || list->list_status != OKAY)                                   \
         {                                                                                       \
-            LIST_DUMP(list);                                                                     \
+            LIST_DUMP(list);                                                                    \
             ProcessError(list_status);                                                          \
         }                                                                                       \
     } while (0);

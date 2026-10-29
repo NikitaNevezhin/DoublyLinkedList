@@ -19,6 +19,7 @@ enum ListStatus
 
     LIST_LINKING_ERROR = 1 << 6,
     LIST_FOUND_LOOP = 1 << 7,
+    INDEX_OUT_OF_RANGE = 1 << 8
 };
 
 const char*     GetErrorString      (ListStatus list_status);

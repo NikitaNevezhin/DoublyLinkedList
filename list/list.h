@@ -32,6 +32,8 @@ struct List
     int capacity;
     int size;
 
+    int list_status;    // bit shifts are going to be used, required type is 'int'
+
     int tail;           // index in data!!!!
     int head;           // index in data!!!!
     int free_head;      // index in data!!!!
@@ -43,9 +45,9 @@ int            ListInit          (List* list, int capacity);
 
 void           PrintList         (List* list);
         
-int            GetFreeIndex            (List* list);  // returns index from data
+int            GetFreeIndex      (List* list);  // returns index from data
         
-int            GetDataIndex            (List* list, int seq_idx);
+int            GetDataIndex      (List* list, int seq_idx);
         
 int            ListGetValue      (List* list, int seq_idx);
         
@@ -55,7 +57,11 @@ int            ListPrepend       (List* list, list_elem_t value);
         
 int            ListInsert        (List* list, list_elem_t value, int seq_idx); // gets sequence index, not data index
 
-int            ListDelete        (List* list, int seq_idx);
+int            ListRemove        (List* list, int seq_idx);
+
+int            ListFindValue     (List* list, list_elem_t value);  // returns seq_index
+
+int            ListRfindValue    (List* list, list_elem_t value);  // returns seq_index
 
 ListStatus     ListVerify        (List* list);
 

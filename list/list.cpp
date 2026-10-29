@@ -27,6 +27,7 @@ int ListInit(List* list, int capacity)
     }
 
     list->data[capacity - 1].next = -1; // last elem has no next elem
+    list->list_status = OKAY;
 
     #ifdef DUMP_EACH_STEP
     LIST_DUMP(list);
@@ -90,6 +91,8 @@ int GetDataIndex(List* list, int seq_idx)
     if (seq_idx < 0 || seq_idx >= list->size)
     {
         PRINT_RED("seq_idx <%d> out of range\n", seq_idx);
+        list->list_status |= INDEX_OUT_OF_RANGE;
+        ASSERT_LIST_OK(list);
         return -1;
     }
 
@@ -109,6 +112,7 @@ int ListGetValue(List* list, int seq_idx)
     if (seq_idx < 0 || seq_idx >= list->size)
     {
         PRINT_RED("Index %d is out of range\n\n", seq_idx);
+        list->list_status |= INDEX_OUT_OF_RANGE;
         return EMPTY;
     }
     
@@ -125,7 +129,7 @@ int ListAppend(List* list, list_elem_t value)
     if (free_idx == -1)
     {
         PRINT_RED("ListOverFlow: cannot insert new value into full list\n");
-        list->size++; // manually creating OverFlow
+        list->list_status = LIST_OVERFLOW;
         ASSERT_LIST_OK(list);
         return 1;
     }
@@ -167,7 +171,7 @@ int ListPrepend(List* list, list_elem_t value)
     if (free_idx == -1)
     {
         PRINT_RED("ListOverFlow: cannot insert new value into full list\n");
-        list->size++; // manually creating OverFlow
+        list->list_status |= LIST_OVERFLOW;
         ASSERT_LIST_OK(list);
         return 1;
     }
@@ -206,6 +210,7 @@ int ListInsert(List* list, list_elem_t value, int seq_idx)
     if (seq_idx < 0 || seq_idx > list->size)
     {
         PRINT_RED("Index %d is out of range\n", seq_idx);
+        list->list_status |= INDEX_OUT_OF_RANGE;
         return 1;
     }
 
@@ -214,7 +219,7 @@ int ListInsert(List* list, list_elem_t value, int seq_idx)
     if (free_idx == -1)
     {
         PRINT_RED("ListOverFlow: cannot insert new value into full list\n");
-        list->size++; // manually creating OverFlow
+        list->list_status |= LIST_OVERFLOW;
         ASSERT_LIST_OK(list);
         return 1;
     }
@@ -267,7 +272,7 @@ int ListInsert(List* list, list_elem_t value, int seq_idx)
     return 0;
 }
 
-int ListDelete(List* list, int seq_idx)
+int ListRemove(List* list, int seq_idx)
 {
     assert(list);
     ASSERT_LIST_OK(list);
@@ -275,6 +280,8 @@ int ListDelete(List* list, int seq_idx)
     if (seq_idx < 0 || seq_idx >= list->size)
     {
         PRINT_RED("Index %d is out of range\n");
+        list->list_status |= INDEX_OUT_OF_RANGE;
+        ASSERT_LIST_OK(list);
         return 1;
     }
 
@@ -323,6 +330,47 @@ int ListDelete(List* list, int seq_idx)
     return 0;
 }
 
+int ListFindValue(List* list, list_elem_t value)
+{
+    assert(list);
+    ASSERT_LIST_OK(list);
+
+    int curr_idx = list->head;
+    int elem_counter = 0;
+
+    while(curr_idx != -1)
+    {
+        if (list->data[curr_idx].value == value)
+            return elem_counter;
+
+        curr_idx = list->data[curr_idx].next;
+        elem_counter++;
+    }
+
+    return -1;
+}
+
+int ListRfindValue(List* list, list_elem_t value)
+{
+    assert(list);
+    ASSERT_LIST_OK(list);
+
+    int curr_idx = list->head;
+    int elem_counter = 0;
+    int last_seen = -1;
+
+    while(curr_idx != -1)
+    {
+        if (list->data[curr_idx].value == value)
+            last_seen = elem_counter;
+
+        curr_idx = list->data[curr_idx].next;
+        elem_counter++;
+    }
+
+    return last_seen;    
+}
+
 ListStatus ListVerify(List* list)
 {
     assert(list);
@@ -338,29 +386,29 @@ ListStatus ListVerify(List* list)
     } 
     
     if (list->capacity <= 0)
-        status |= NON_POSITIVE_CAPACITY;
+        list->list_status |= NON_POSITIVE_CAPACITY;
 
     if (list->size < 0)
-        status |= LIST_UNDERFLOW; // 
+        list->list_status |= LIST_UNDERFLOW; // 
 
     if (list->capacity > 0 && list->size > list->capacity)
-        status |= LIST_OVERFLOW;
+        list->list_status |= LIST_OVERFLOW;
 
-    if (status & DATA_NULL || status & NON_POSITIVE_CAPACITY)   return (ListStatus)status; // no sense to check anything below
+    if (list->list_status & DATA_NULL || list->list_status & NON_POSITIVE_CAPACITY)   return (ListStatus)list->list_status; // no sense to check anything below
 
     // check empty list
     if (list->size == 0)
     {
         if (list->head != -1 || list->tail != -1)
-            status |= LIST_LINKING_ERROR;
-        return (ListStatus)status;
+            list->list_status |= LIST_LINKING_ERROR;
+        return (ListStatus)list->list_status;
     }
 
     if (list->data[list->head].prev != -1)
-        status |= LIST_LINKING_ERROR;
+        list->list_status |= LIST_LINKING_ERROR;
 
     if (list->data[list->tail].next != -1)
-        status |= LIST_LINKING_ERROR;
+        list->list_status |= LIST_LINKING_ERROR;
 
     // iterate through the list
     int curr_idx = list->head;
@@ -372,22 +420,22 @@ ListStatus ListVerify(List* list)
         
         if (elem_counter > list->size)
         {
-            status |= LIST_FOUND_LOOP;
+            list->list_status |= LIST_FOUND_LOOP;
             break;
         }
 
         int next_idx = list->data[curr_idx].next;
 
         if (next_idx == -1 && list->tail != curr_idx)
-            status |= LIST_LINKING_ERROR;
+            list->list_status |= LIST_LINKING_ERROR;
 
         else if (next_idx != -1 && list->data[next_idx].prev != curr_idx)
-            status |= LIST_LINKING_ERROR;
+            list->list_status |= LIST_LINKING_ERROR;
 
         curr_idx = next_idx;
     }
 
-    return (ListStatus)status;  // converting to ERROR_STATUS after working with int
+    return (ListStatus)list->list_status;  // converting to ERROR_STATUS after working with int
 }
 
 void ListDump(List* list, const char* file, int line, const char* func)
@@ -405,7 +453,7 @@ void ListDump(List* list, const char* file, int line, const char* func)
     }
 
     printf("list_status = ");
-    PrintAllErrors(list_status);
+    PrintAllErrors((ListStatus)list->list_status);
     printf("\n");
 
     printf("Size:      %d\n", list->size);

@@ -20,6 +20,8 @@ const char* GetErrorString(ListStatus list_status)
 
         case LIST_FOUND_LOOP:       return RED "LIST_FOUND_POOP" RESET;
 
+        case INDEX_OUT_OF_RANGE:    return RED "INDEX_OUT_OF_RANGE" RESET;
+
         default:                    return RED "You are seriously fucked up, man" RESET;
     }
 }
@@ -57,6 +59,7 @@ void PrintAllErrors(ListStatus list_status)
     PrintError(list_status, NON_POSITIVE_CAPACITY, &first);
     PrintError(list_status, LIST_LINKING_ERROR, &first);
     PrintError(list_status, LIST_FOUND_LOOP, &first);
+    PrintError(list_status, INDEX_OUT_OF_RANGE, &first);
 }
 
 void ProcessError(ListStatus list_status)
@@ -69,6 +72,7 @@ void ProcessError(ListStatus list_status)
     if (list_status & NON_POSITIVE_CAPACITY) PRINT_RED("Error: List capacity is not positive\n" );
     if (list_status & LIST_LINKING_ERROR)    PRINT_RED("Error: Some links between elems are invalid\n" );
     if (list_status & LIST_FOUND_LOOP)       PRINT_RED("Error: List contains loop\n" );
+    if (list_status & INDEX_OUT_OF_RANGE)    PRINT_RED("Error: Failed attempt to use index out of range\n");
     abort();
     
     return;
