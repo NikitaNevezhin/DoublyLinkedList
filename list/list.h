@@ -41,34 +41,40 @@ struct List
 
 #define LIST_DUMP(list)  ListDump(list, __FILE__, __LINE__, __func__)
 
-int            ListInit          (List* list, int capacity);
+int            ListInit                 (List* list, int capacity);
 
-void           ListPrint         (List* list);
-        
-int            ListGetFreeIndex  (List* list);  // returns index from data
-        
-int            ListGetDataIndex  (List* list, int seq_idx);
-        
-int            ListGetValue      (List* list, int seq_idx);
-        
-int            ListAppend        (List* list, list_elem_t value);  // add new elem at the end, after tail
-        
-int            ListPrepend       (List* list, list_elem_t value);
-        
-int            ListInsert        (List* list, list_elem_t value, int seq_idx); // gets sequence index, not data index
+void           ListPrint                (List* list);
 
-int            ListRemove        (List* list, int seq_idx);
+int            ListGetFreeIndex         (List* list);  // returns index from data
 
-int            ListFindValue     (List* list, list_elem_t value);  // returns seq_index
+int            ListGetDataIndex         (List* list, int seq_idx);
 
-int            ListRfindValue    (List* list, list_elem_t value);  // returns seq_index
+int            ListGetValue             (List* list, int seq_idx);
 
-int            ListClear         (List* list);
+int            ListAppend               (List* list, list_elem_t value);  // add new elem at the end, after tail
 
-ListStatus     ListVerify        (List* list);
+int            ListPrepend              (List* list, list_elem_t value);
 
-void           ListDump          (List* list, const char* file, int line, const char* func);
+int            ListInsert               (List* list, list_elem_t value, int seq_idx); // gets sequence index, not data index
 
-void           ListDestroy       (List* list);
+int            ListRemove               (List* list, int seq_idx);
+
+int            ListFindValue            (List* list, list_elem_t value);  // returns seq_index
+
+int            ListRfindValue           (List* list, list_elem_t value);  // returns seq_index
+
+int            ListClear                (List* list);
+
+ListStatus     ListVerify               (List* list);
+
+void           ListDump                 (List* list, const char* file, int line, const char* func);
+
+void           ListDestroy              (List* list);
+
+int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx);
+
+int            ListGenerateDotFile      (List* list, const char* dot_filename);
+
+int            ListGraphDump            (List* list, const char* dot_filename, const char* png_filename);
 
 #endif

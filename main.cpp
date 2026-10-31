@@ -7,7 +7,7 @@ int main(void)
     // LINKED_LIST_DUMP(&list);
 
 
-    for (int i = 0; i < 10; i++) ListAppend(&list, i * 10);
+    for (int i = 0; i < 9; i++) ListAppend(&list, i * 100);
 
     // list.capacity = -1;
 
@@ -16,11 +16,9 @@ int main(void)
     // list.data[2].next = 1;
     // ListInsert(&list, 69, 10);
 
+    ListRemove(&list, 5);
     LIST_DUMP(&list);
-    ListClear(&list);
-    LIST_DUMP(&list);
-    for (int i = 0; i < 10; i++) ListAppend(&list, i * 10);
-    LIST_DUMP(&list);
+    ListGraphDump(&list, "test_dump.dot", "test.png");
 
     ListDestroy(&list);
 
