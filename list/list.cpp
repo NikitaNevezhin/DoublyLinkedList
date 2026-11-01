@@ -523,7 +523,7 @@ void ListDestroy(List* list)
     list->tail = -1;
 }
 
-int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx) // ListGenerateDotFile helper func
+int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx, INDEX_TYPE idx_type) // ListGenerateDotFile helper func
 {
     assert(dot_file);
     assert(list);
@@ -531,7 +531,7 @@ int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx) // ListGenera
     fprintf(
         dot_file, 
         "    node_%d [label=<\n"
-        "        <TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" COLOR=\"#354733\" BGCOLOR=\"#48A43F\">\n"
+        "        <TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" COLOR=\"#354733\" BGCOLOR=\"#40E0D0\">\n"
         "            <TR><TD COLSPAN=\"2\" ALIGN=\"CENTER\" BORDER=\"1\">INDEX=%d</TD></TR>\n"
         "            <TR><TD COLSPAN=\"2\" ALIGN=\"CENTER\" BORDER=\"1\">DATA=%d</TD></TR>\n"
         "            <TR>\n"
@@ -542,6 +542,19 @@ int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx) // ListGenera
         "    >];\n\n",
         data_idx, data_idx, list->data[data_idx].value, list->data[data_idx].prev, list->data[data_idx].next
             );
+    
+    if (idx_type == HEAD)
+    {
+        fprintf(dot_file, "    {rank=same; node_%d; head_label;}\n", data_idx);
+        fprintf(dot_file, "    head_label -> node_%d\n\n", data_idx);
+    }
+
+    else if (idx_type == TAIL)
+    {
+        fprintf(dot_file, "    {rank=same; node_%d; tail_label;}\n", data_idx);
+        fprintf(dot_file, "    tail_label -> node_%d\n\n", data_idx);        
+    }
+        
 
         return 0;
 }
@@ -562,8 +575,10 @@ int ListGenerateDotFile(List* list, const char* dot_filename)
 
     fprintf(dot_file, "digraph G {\n");
     fprintf(dot_file, "    rankdir=LR;\n");
-    fprintf(dot_file, "    node [shape=plain, fontcolor=\"white\", fontname=\"Arial\", fontsize=11];\n");
-    fprintf(dot_file, "    edge [color=\"#354733\", arrowsize=0.6]\n");
+    fprintf(dot_file, "    node [shape=plain, fontcolor=\"#212529\", fontname=\"Arial\", fontsize=11];\n");
+    fprintf(dot_file, "    edge [color=\"#354733\", arrowsize=0.6]\n\n");
+    fprintf(dot_file, "    head_label [shape=box, style=filled, color=\"#354733\", fillcolor=yellow, label=\"HEAD\", fontcolor=black];\n");
+    fprintf(dot_file, "    tail_label [shape=box, style=filled, color=\"#354733\", fillcolor=purple, label=\"TAIL\", fontcolor=black];\n\n");
     
     int elem_counter = 0;
     int curr_idx = list->head;
@@ -575,8 +590,15 @@ int ListGenerateDotFile(List* list, const char* dot_filename)
             PRINT_RED("Loop found - ListPrint is stopped\n");
             break; 
         }
+
+        INDEX_TYPE idx_type = UNKNOWN;
+        if (curr_idx == list->head)  idx_type = HEAD;
         
-        ListGenerateNodeDump(dot_file, list, curr_idx);
+        else if (curr_idx == list->tail)  idx_type = TAIL;
+
+        else    idx_type = MIDDLE;
+        
+        ListGenerateNodeDump(dot_file, list, curr_idx, idx_type);
         
         curr_idx = list->data[curr_idx].next;
         elem_counter++;

@@ -39,6 +39,15 @@ struct List
     int free_head;      // index in data!!!!
 };
 
+enum INDEX_TYPE         // this enum is used in GraphDump
+{
+    UNKNOWN,
+    HEAD,
+    MIDDLE,
+    TAIL,
+    FREE_HEAD
+};
+
 #define LIST_DUMP(list)  ListDump(list, __FILE__, __LINE__, __func__)
 
 int            ListInit                 (List* list, int capacity);
@@ -71,7 +80,7 @@ void           ListDump                 (List* list, const char* file, int line,
 
 void           ListDestroy              (List* list);
 
-int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx);
+int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx, INDEX_TYPE idx_type);
 
 int            ListGenerateDotFile      (List* list, const char* dot_filename);
 
