@@ -42,10 +42,13 @@ struct List
 enum INDEX_TYPE         // this enum is used in GraphDump
 {
     UNKNOWN,
+    
     HEAD,
     MIDDLE,
     TAIL,
-    FREE_HEAD
+
+    FREE_HEAD,
+    FREE_MIDDLE
 };
 
 #define LIST_DUMP(list)  ListDump(list, __FILE__, __LINE__, __func__)
