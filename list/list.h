@@ -42,7 +42,7 @@ struct List
 enum INDEX_TYPE         // this enum is used in GraphDump
 {
     UNKNOWN,
-    
+
     HEAD,
     MIDDLE,
     TAIL,
@@ -84,6 +84,10 @@ void           ListDump                 (List* list, const char* file, int line,
 void           ListDestroy              (List* list);
 
 int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx, INDEX_TYPE idx_type);
+
+int            GenerateBusyCluster      (FILE* dot_file, List* list);
+
+int            GenerateFreeCluster       (FILE* dot_file, List* list);
 
 int            ListGenerateDotFile      (List* list, const char* dot_filename);
 
