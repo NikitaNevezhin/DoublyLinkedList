@@ -11,7 +11,10 @@ int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx, INDEX_TYPE id
         bgcolor = "#98FF98 "; // case of free elems
 
     else if (idx_type == ERROR_NODE)
-        bgcolor="#FF6B4A";
+        bgcolor = "#FF6B4A";
+
+    else if (idx_type == LOST_NODE)
+        bgcolor = "#E066FF";
 
     fprintf(
             dot_file, 
@@ -125,10 +128,25 @@ int GenerateBusyCluster(FILE* dot_file, List* list)
             continue; // loop will be found on the next iteration
         }
 
-        if (curr_elem->prev != -1 && curr_elem->prev < list->capacity)
-            fprintf(dot_file, "        node_%d:p -> node_%d:n [splines=false];\n", curr_idx, curr_elem->prev);
+        if (curr_elem->prev != -1 && curr_elem->prev < list->capacity && curr_elem->prev >= 0)
+        {   
+            if (curr_elem->prev == prev_idx)  // right back link
+                fprintf(dot_file, "        node_%d:p -> node_%d:n [splines=false];\n", curr_idx, curr_elem->prev);
+            
+            else
+            {   
+                ListGenerateNodeDump(dot_file, list, curr_elem->prev, ERROR_NODE);
+                ListGenerateNodeDump(dot_file, list, curr_idx, ERROR_NODE);
+                fprintf(dot_file, "        node_%d:s -> node_%d:s [color=\"#FF6B4A\", label=<<FONT POINT-SIZE=\"9\">INVALID LINK</FONT><BR/>>, fontcolor=\"#FF6B4A\", style=\"dashed\"];\n", curr_idx, curr_elem->prev);
+            }
+        }
 
-        if (curr_elem->next != -1 && curr_elem->next < list->capacity)
+        else if (curr_idx != list->head || (curr_idx == list->head && curr_elem->prev != -1)) // only head prev can be -1
+        {
+            fprintf(dot_file, "        node_%d:p -> node_%d:p [color=\"#FF6B4A\", label=<<FONT POINT-SIZE=\"9\">INDEX OUT</FONT><BR/>>, fontcolor=\"#FF6B4A\", style=\"dotted\"];\n", curr_idx, curr_idx);
+        }
+
+        if (curr_elem->next != -1 && curr_elem->next < list->capacity) // we suppose next is always right
             fprintf(dot_file, "        node_%d:n -> node_%d:p [splines=false];\n", curr_idx, curr_elem->next);
         
         prev_idx = curr_idx;
@@ -203,6 +221,66 @@ int GenerateFreeCluster(FILE* dot_file, List* list)
     return 0;
 }
 
+int GenerateLostCluster(FILE* dot_file, List* list)
+{
+    assert(dot_file);
+    assert(list);
+
+    fprintf(dot_file, "    subgraph cluster_lost_nodes {\n");
+
+    bool* seen = (bool*)calloc(list->capacity, sizeof(bool));
+
+    // ----------------------------
+    // ITERATION THROUGH BUSY NODES
+    // ----------------------------
+
+    int elem_counter = 0;
+    int curr_idx = list->head;
+
+    while (curr_idx != -1)
+    {   
+        if (elem_counter >= list->capacity || seen[curr_idx])
+        {
+            PRINT_RED("Loop found - ListPrint is stopped\n");
+            break; 
+        }
+        
+        seen[curr_idx] = true;
+        curr_idx = list->data[curr_idx].next;
+        elem_counter++;
+    }
+
+    // ----------------------------
+    // ITERATION THROUGH FREE NODES
+    // ----------------------------
+
+    elem_counter = 0;
+    curr_idx = list->free_head;
+
+    while (curr_idx != -1)
+    {   
+        if (elem_counter >= list->capacity || seen[curr_idx])
+        {
+            PRINT_RED("Loop found - ListPrint is stopped\n");
+            break; 
+        }
+        
+        seen[curr_idx] = true;
+        curr_idx = list->data[curr_idx].next;
+        elem_counter++;
+    }
+
+    for (int i = 0; i < list->capacity; i++)
+    {
+        if (!seen[i])  ListGenerateNodeDump(dot_file, list, i, LOST_NODE);
+    }
+
+    fprintf(dot_file, "    }\n\n");
+
+    free(seen);
+    return 0;
+}
+
 int ListGenerateDotFile(List* list, const char* dot_filename)
 {
     assert(list);
@@ -226,6 +304,7 @@ int ListGenerateDotFile(List* list, const char* dot_filename)
     fprintf(dot_file, "    node [shape=plain, fontcolor=\"#212529\", fontname=\"Arial\", fontsize=11];\n");
     fprintf(dot_file, "    edge [color=\"#354733\", arrowsize=0.6]\n\n");
 
+    GenerateLostCluster(dot_file, list);
     GenerateFreeCluster(dot_file, list);
     GenerateBusyCluster(dot_file, list);
 

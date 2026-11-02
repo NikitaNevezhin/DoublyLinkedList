@@ -43,6 +43,7 @@ enum INDEX_TYPE         // this enum is used in GraphDump
 {
     UNKNOWN,
     ERROR_NODE,
+    LOST_NODE,
 
     HEAD,
     MIDDLE,
@@ -88,7 +89,9 @@ int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_id
 
 int            GenerateBusyCluster      (FILE* dot_file, List* list);
 
-int            GenerateFreeCluster       (FILE* dot_file, List* list);
+int            GenerateFreeCluster      (FILE* dot_file, List* list);
+
+int            GenerateLostCluster      (FILE* dot_file, List* list);
 
 int            ListGenerateDotFile      (List* list, const char* dot_filename);
 

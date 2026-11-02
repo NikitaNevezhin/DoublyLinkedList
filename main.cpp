@@ -13,7 +13,14 @@ int main(void)
 
     // for (int i = 0; i < 10; i++) ListRemove(&list, 0);    
 
-    // list.data[9].next = 1;
+    // list.data[4].prev = 0;
+    // list.data[9].next = 0;
+
+    list.data[3].next = 5;
+    list.data[5].prev = 3;
+
+    list.data[0].prev = 9999;
+
     // ListInsert(&list, 69, 10);
 
     // ListRemove(&list, 5);
