@@ -355,51 +355,62 @@ int ListGenerateHtmlFile(List* list,
     if (is_first_dump)
     {
         fprintf(html_file,
-        "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
-        "    <meta charset=\"UTF-8\">\n"
-        "    <title>List Dump</title>\n"
-        "    <style>\n"
-        "        body { font-family: Arial, sans-serif; background: #f8fafc; padding: 30px; color: #1e293b; }\n"
-        "        .container {\n"
-        "            max-width: 1200px;\n"
-        "            margin: 0 auto;\n"
-        "            background: white;\n"
-        "            padding: 24px;\n"
-        "            border-radius: 8px;\n"
-        "            border: 1px solid #e2e8f0;\n"
-        "            box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n"
-        "            text-align: center;\n"
-        "        }\n"
-        "        h2 { margin-top: 0; color: #0f172a; text-align: center; }\n"
-        "        \n"
-        "        /* Красивая штриховая линия из тире на всю ширину контейнера */\n"
-        "        .dash-line {\n"
-        "            border: none;\n"
-        "            border-top: 2px dashed #94a3b8;\n" // Сделали цвет чуть темнее для четкости
-        "            margin: 25px 0;\n"
-        "            width: 100%%;\n"
-        "        }\n"
-        "        \n"
-        "        .light-log {\n"
-        "            display: inline-block;\n"
-        "            font-family: 'Courier New', monospace;\n"
-        "            font-size: 14px;\n"
-        "            line-height: 1.6;\n"
-        "            color: #334155;\n"
-        "            text-align: left;\n" // Текст внутри выровнен, но сам блок по центру
-        "            margin: 0 auto;\n"
-        "            padding: 0;\n"
-        "        }\n"
-        "        .graph-container { overflow-x: auto; padding: 15px; border: 1px solid #f1f5f9; background: #fafafa; border-radius: 6px; }\n"
-        "        svg { max-width: 100%%; height: auto; display: block; margin: 0 auto; }\n"
-        "    </style>\n</head>\n<body>\n"
-        "    <div class=\"container\">\n"
-        "        <h2>DUMP HISTORY</h2>\n"
-        "        <hr class=\"dash-line\">\n" // ЛИНИЯ ИЗ ТИРЕ 1: Под заголовком
+            "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+            "    <meta charset=\"UTF-8\">\n"
+            "    <title>List Dump History</title>\n"
+            "    <style>\n"
+            "        /* Общий фон страницы — мягкий светло-серый */\n"
+            "        body { font-family: Arial, sans-serif; background: #f1f5f9; padding: 30px; color: #1e293b; }\n"
+            "        \n"
+            "        /* Главный заголовок всей страницы сверху */\n"
+            "        h2 { text-align: center; color: #0f172a; margin-bottom: 30px; font-size: 28px; }\n"
+            "        \n"
+            "        /* СТИЛЬ КАРТОЧКИ ДЛЯ КАЖДОГО ДЕЙСТВИЯ */\n"
+            "        .dump-section {\n"
+            "            max-width: 1200px;\n"
+            "            margin: 0 auto 40px auto; /* Центрируем карточку и делаем отступ снизу */\n"
+            "            background: white;\n"
+            "            padding: 24px;\n"
+            "            border-radius: 8px;\n"
+            "            border: 1px solid #e2e8f0;\n"
+            "            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);\n"
+            "            text-align: center; /* Центрирует внутренние элементы */\n"
+            "        }\n"
+            "        \n"
+            "        /* Заголовок внутри карточки шага */\n"
+            "        .dump-section h3 { margin-top: 0; margin-bottom: 15px; font-size: 18px; color: #1e40af; }\n"
+            "        \n"
+            "        /* Красивая штриховая линия из тире */\n"
+            "        .dash-line {\n"
+            "            border: none;\n"
+            "            border-top: 2px dashed #cbd5e1;\n"
+            "            margin: 20px 0;\n"
+            "            width: 100%%;\n"
+            "        }\n"
+            "        \n"
+            "        /* Текстовый лог внутри карточки */\n"
+            "        .light-log {\n"
+            "            display: inline-block;\n"
+            "            font-family: 'Courier New', monospace;\n"
+            "            font-size: 14px;\n"
+            "            line-height: 1.6;\n"
+            "            color: #334155;\n"
+            "            text-align: left; /* Строки внутри лога ровные */\n"
+            "            margin: 0 auto;\n"
+            "            padding: 0;\n"
+            "        }\n"
+            "        \n"
+            "        /* Контейнер для SVG картинки графа */\n"
+            "        .graph-container { overflow-x: auto; padding: 15px; border: 1px solid #f1f5f9; background: #fafafa; border-radius: 6px; }\n"
+            "        svg { max-width: 100%%; height: auto; display: block; margin: 0 auto; }\n"
+            "    </style>\n</head>\n<body>\n"
+            "    <h2>DOUBLY LINKED LIST DUMP HISTORY</h2>\n"
         );
 
         is_first_dump = false;
     }
+
+    fprintf(html_file, "    <div class=\"dump-section\">\n");
 
     ListStatus list_status = ListVerify(list);
     char* str_list_status = (char*)calloc(169, sizeof(char));
@@ -433,7 +444,9 @@ int ListGenerateHtmlFile(List* list,
 
     int ch = 0;
     while ((ch = fgetc(svg_file)) != EOF)  fputc(ch, html_file);  // copying svg file to html
-    fprintf(html_file, "        </div>\n");
+    
+    fprintf(html_file, "        </div>\n"); // Закрыли graph-container
+    fprintf(html_file, "    </div>\n\n");   // Закрыли dump-section карточки
 
     fclose(svg_file);
     fclose(html_file);
