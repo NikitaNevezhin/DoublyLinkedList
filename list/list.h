@@ -87,15 +87,15 @@ void           ListDump                 (List* list, const char* file, int line,
 
 void           ListDestroy              (List* list);
 
-int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx, INDEX_TYPE idx_type);
+int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx, INDEX_TYPE idx_type, int dump_counter);
 
-int            GenerateBusyCluster      (FILE* dot_file, List* list);
+int            GenerateBusyCluster      (FILE* dot_file, List* list, int dump_counter);
 
-int            GenerateFreeCluster      (FILE* dot_file, List* list);
+int            GenerateFreeCluster      (FILE* dot_file, List* list, int dump_counter);
 
-int            GenerateLostCluster      (FILE* dot_file, List* list);
+int            GenerateLostCluster      (FILE* dot_file, List* list, int dump_counter);
 
-int            ListGenerateDotFile      (List* list, const char* dot_filename);
+int            ListGenerateDotFile      (List* list, const char* dot_filename, int dump_counter);
 
 int            ListGenerateHtmlFile     (List* list, 
                                          const char* html_filename, const char* file, int line, const char* func);
