@@ -28,6 +28,10 @@ void            PrintError          (ListStatus list_status, ListStatus error, b
 
 void            PrintAllErrors      (ListStatus list_status);
 
+void            SprintError         (char* dest, ListStatus list_status, ListStatus error, bool* first);
+
+void            SprintAllErrors     (char* dest, ListStatus list_status);
+
 void            ProcessError        (ListStatus list_status);
 
 #endif

@@ -315,21 +315,134 @@ int ListGenerateDotFile(List* list, const char* dot_filename)
     return 0;
 }
 
-int ListGraphDump(List* list, const char* dot_filename, const char* png_filename)
+int ListGenerateHtmlFile(List* list,  
+                         const char* html_filename, const char* file, int line, const char* func)
 {
     assert(list);
-    assert(dot_filename);
-    assert(png_filename);
+    assert(html_filename);
+
+    static int dump_counter = 1;
+
+    const char* dot_filename = "temp_dot_file.dot"; // this file's gonna be destroyed
+    const char* svg_filename = "temp_svg_file.svg"; // this file's gonna be destroyed
 
     ListGenerateDotFile(list, dot_filename);
 
-    char temp_term_command[100] = {};
+    // creating svg
+    char temp_term_command[1969] = {};
 
-    sprintf(temp_term_command, "dot -Tpng %s -o %s", dot_filename, png_filename);
+    sprintf(temp_term_command, "dot -Tsvg %s -o %s", dot_filename, svg_filename);
 
     const char* terminal_command = temp_term_command;
 
     system(terminal_command);
+
+    FILE* html_file = fopen(html_filename, "w");
+    FILE* svg_file = fopen(svg_filename, "r");
+
+    assert(html_file);
+    assert(svg_file);
+
+    fprintf(html_file,
+    "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+    "    <meta charset=\"UTF-8\">\n"
+    "    <title>List Dump</title>\n"
+    "    <style>\n"
+    "        body { font-family: Arial, sans-serif; background: #f8fafc; padding: 30px; color: #1e293b; }\n"
+    "        .container {\n"
+    "            max-width: 1200px;\n"
+    "            margin: 0 auto;\n"
+    "            background: white;\n"
+    "            padding: 24px;\n"
+    "            border-radius: 8px;\n"
+    "            border: 1px solid #e2e8f0;\n"
+    "            box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n"
+    "            text-align: center;\n"
+    "        }\n"
+    "        h2 { margin-top: 0; color: #0f172a; text-align: center; }\n"
+    "        \n"
+    "        /* Красивая штриховая линия из тире на всю ширину контейнера */\n"
+    "        .dash-line {\n"
+    "            border: none;\n"
+    "            border-top: 2px dashed #94a3b8;\n" // Сделали цвет чуть темнее для четкости
+    "            margin: 25px 0;\n"
+    "            width: 100%%;\n"
+    "        }\n"
+    "        \n"
+    "        .light-log {\n"
+    "            display: inline-block;\n"
+    "            font-family: 'Courier New', monospace;\n"
+    "            font-size: 14px;\n"
+    "            line-height: 1.6;\n"
+    "            color: #334155;\n"
+    "            text-align: left;\n" // Текст внутри выровнен, но сам блок по центру
+    "            margin: 0 auto;\n"
+    "            padding: 0;\n"
+    "        }\n"
+    "        .graph-container { overflow-x: auto; padding: 15px; border: 1px solid #f1f5f9; background: #fafafa; border-radius: 6px; }\n"
+    "        svg { max-width: 100%%; height: auto; display: block; margin: 0 auto; }\n"
+    "    </style>\n</head>\n<body>\n"
+    "    <div class=\"container\">\n"
+    "        <h2>List structure dump number 1</h2>\n"
+    "        <hr class=\"dash-line\">\n" // ЛИНИЯ ИЗ ТИРЕ 1: Под заголовком
+    );
+
+
+    ListStatus list_status = ListVerify(list);
+    char* str_list_status = (char*)calloc(169, sizeof(char));
+    SprintAllErrors(str_list_status, list_status);
+
+    char* html_list_status = (char*)calloc(169, sizeof(char));;
+    if (list_status == OKAY)
+        sprintf(html_list_status, "<span style=\"color: #4ade80; font-weight: bold;\">LIST IS OKAY</span>");
+
+    else
+        sprintf(html_list_status, "<span style=\"color: #f87171; font-weight: bold;\">%s</span>", str_list_status);
+
+    fprintf(html_file, 
+    "        <pre class=\"light-log\">\n"
+    "ListDump was called in %s:%d in function %s()\n"
+    "list_status = %s\n"
+    "Size:      %d\n"
+    "Capacity:  %d\n"
+    "Head:      %d\n"
+    "Tail:      %d\n"
+    "Free head: %d\n"
+    "data [%p]\n"
+    "        </pre>\n\n",
+    file, line, func, html_list_status, list->size, list->capacity, list->head, list->tail, list->free_head, list->data
+    );
+
+    fprintf(html_file, 
+    "        <hr class=\"dash-line\">\n"
+    "        <div class=\"graph-container\">\n"
+    );
+
+    int ch = 0;
+    while ((ch = fgetc(svg_file)) != EOF)  fputc(ch, html_file);  // copying svg file to html
+
+    fprintf(html_file, 
+        "        </div>\n"
+        "    </div>\n"
+        "</body>\n</html>\n"
+    );
+
+    fclose(svg_file);
+    fclose(html_file);
+
+    remove(dot_filename);
+    remove(svg_filename);
+
+    dump_counter++;
+    return 0;
+}
+
+int ListGraphDump(List* list,
+                  const char* html_filename, const char* file, int line, const char* func)
+{
+    assert(list);
+
+    ListGenerateHtmlFile(list, html_filename, file, line, func);
     
     return 0;
 }

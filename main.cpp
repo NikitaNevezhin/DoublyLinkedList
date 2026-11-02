@@ -11,9 +11,9 @@ int main(void)
 
     // list.capacity = -1;
 
-    // for (int i = 0; i < 10; i++) ListRemove(&list, 0);    
+    // for (int i = 0; i < 10; i++) ListRemove(&list, 0);   
 
-    // list.data[4].prev = 0;
+    list.data[6].prev = 0;
     // list.data[9].next = 0;
 
     list.data[3].next = 5;
@@ -25,7 +25,7 @@ int main(void)
 
     // ListRemove(&list, 5);
     // LIST_DUMP(&list);
-    ListGraphDump(&list, "test_dump.dot", "test.png");
+    LIST_GRAPH_DUMP(&list, "graph_dump.html");
 
     ListDestroy(&list);
 

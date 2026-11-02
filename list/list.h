@@ -55,6 +55,8 @@ enum INDEX_TYPE         // this enum is used in GraphDump
 
 #define LIST_DUMP(list)  ListDump(list, __FILE__, __LINE__, __func__)
 
+#define LIST_GRAPH_DUMP(list, html_filename) ListGraphDump(list, html_filename, __FILE__, __LINE__, __func__)
+
 int            ListInit                 (List* list, int capacity);
 
 void           ListPrint                (List* list);
@@ -95,6 +97,10 @@ int            GenerateLostCluster      (FILE* dot_file, List* list);
 
 int            ListGenerateDotFile      (List* list, const char* dot_filename);
 
-int            ListGraphDump            (List* list, const char* dot_filename, const char* png_filename);
+int            ListGenerateHtmlFile     (List* list, 
+                                         const char* html_filename, const char* file, int line, const char* func);
+
+int            ListGraphDump            (List* list,
+                                         const char* html_filename, const char* file, int line, const char* func);
 
 #endif
