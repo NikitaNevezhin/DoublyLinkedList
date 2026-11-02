@@ -42,6 +42,7 @@ struct List
 enum INDEX_TYPE         // this enum is used in GraphDump
 {
     UNKNOWN,
+    ERROR_NODE,
 
     HEAD,
     MIDDLE,
