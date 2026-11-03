@@ -53,6 +53,13 @@ enum INDEX_TYPE         // this enum is used in GraphDump
     FREE_MIDDLE
 };
 
+enum NODE_TYPE
+{
+    BUSY,
+    FREE,
+    LOST
+};
+
 #define LIST_DUMP(list)  ListDump(list, __FILE__, __LINE__, __func__)
 
 #define LIST_GRAPH_DUMP(list, html_filename) ListGraphDump(list, html_filename, __FILE__, __LINE__, __func__)
@@ -87,7 +94,7 @@ void           ListDump                 (List* list, const char* file, int line,
 
 void           ListDestroy              (List* list);
 
-int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx, INDEX_TYPE idx_type, int dump_counter);
+int            ListGenerateNodeDump     (FILE* dot_file, List* list, int data_idx, int seq_idx, INDEX_TYPE idx_type, int dump_counter);
 
 int            GenerateBusyCluster      (FILE* dot_file, List* list, int dump_counter);
 
@@ -102,5 +109,13 @@ int            ListGenerateHtmlFile     (List* list,
 
 int            ListGraphDump            (List* list,
                                          const char* html_filename, const char* file, int line, const char* func);
+
+int GenerateServiceNodes(FILE* dot_file, int dump_counter);
+
+int GenerateBusyNodesLinks(FILE* dot_file, List* list, int dump_counter);
+
+int GenerateAllNodes(FILE* dot_file, List* list, int dump_counter);
+
+
 
 #endif

@@ -1,6 +1,6 @@
 #include "list.h"
 
-int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx, INDEX_TYPE idx_type, int dump_counter) // ListGenerateDotFile helper func
+int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx, int seq_idx, INDEX_TYPE idx_type, int dump_counter) // ListGenerateDotFile helper func
 {
     assert(dot_file);
     assert(list);
@@ -28,7 +28,7 @@ int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx, INDEX_TYPE id
             "                </TR>\n"
             "            </TABLE>\n"
             "        >];\n\n",
-            dump_counter, data_idx, bgcolor, data_idx, list->data[data_idx].value, list->data[data_idx].prev, list->data[data_idx].next
+            dump_counter, data_idx, bgcolor, seq_idx, list->data[data_idx].value, list->data[data_idx].prev, list->data[data_idx].next
     );
     
     if (idx_type == HEAD)
@@ -52,12 +52,10 @@ int ListGenerateNodeDump(FILE* dot_file, List* list, int data_idx, INDEX_TYPE id
     return 0;
 }
 
-int GenerateBusyCluster(FILE* dot_file, List* list, int dump_counter)
+int GenerateServiceNodes(FILE* dot_file, int dump_counter)
 {
     assert(dot_file);
-    assert(list);
 
-    fprintf(dot_file, "    subgraph d%d_cluster_busy_nodes {\n", dump_counter);
     fprintf(dot_file, "        d%d_head_label [shape=plain, label=<\n"
                       "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#FEF08A\" CELLPADDING=\"6\">\n"
                       "                <TR><TD ALIGN=\"CENTER\">HEAD</TD></TR>\n"
@@ -67,53 +65,42 @@ int GenerateBusyCluster(FILE* dot_file, List* list, int dump_counter)
     );
 
     fprintf(dot_file, "        d%d_tail_label [shape=plain, label=<\n"
-                      "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#F6B8B8\" CELLPADDING=\"6\">\n"
-                      "                <TR><TD ALIGN=\"CENTER\">TAIL</TD></TR>\n"
+                        "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#F6B8B8\" CELLPADDING=\"6\">\n"
+                        "                <TR><TD ALIGN=\"CENTER\">TAIL</TD></TR>\n"
+                        "</TABLE>\n"
+                        ">];\n\n",
+                        dump_counter
+    );
+
+    fprintf(dot_file, "        d%d_free_head_label [shape=plain, label=<\n"
+                      "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#FEF08A\" CELLPADDING=\"7\">\n"
+                      "                <TR><TD ALIGN=\"CENTER\">FREE</TD></TR>\n"
                       "</TABLE>\n"
                       ">];\n\n",
                       dump_counter
     );
-    
-    int elem_counter = 0;
-    int curr_idx = list->head;
+
+    return 0;
+}
+
+int GenerateBusyNodesLinks(FILE* dot_file, List* list, int dump_counter)
+{
+    assert(dot_file);
+    assert(list);
+
     bool* seen = (bool*)calloc(list->capacity, sizeof(bool));
 
-    while (curr_idx != -1)
-    {   
-        if (elem_counter >= list->capacity || seen[curr_idx])
-        {
-            PRINT_RED("Loop found - ListPrint is stopped\n");
-            break; 
-        }
-
-        seen[curr_idx] = true;
-
-        INDEX_TYPE idx_type = UNKNOWN;
-        if (curr_idx == list->head)  idx_type = HEAD;
-        
-        else if (curr_idx == list->tail)  idx_type = TAIL;
-
-        else    idx_type = MIDDLE;
-        
-        ListGenerateNodeDump(dot_file, list, curr_idx, idx_type, dump_counter);
-        
-        curr_idx = list->data[curr_idx].next;
-        elem_counter++;
-    }
-
-    for (int i = 0; i < list->capacity; i++)    seen[i] = false;
-
-    elem_counter = 0;
+    int elem_counter = 0;
     int prev_idx = -1;
-    curr_idx = list->head;
+    int curr_idx = list->head;
 
     while (curr_idx != -1)
     {   
         if (elem_counter >= list->capacity || seen[curr_idx])
         {
             PRINT_RED("Loop found - ListPrint is stopped\n");
-            ListGenerateNodeDump(dot_file, list, curr_idx, ERROR_NODE, dump_counter);
-            ListGenerateNodeDump(dot_file, list, prev_idx, ERROR_NODE, dump_counter);
+            ListGenerateNodeDump(dot_file, list, curr_idx, -1, ERROR_NODE, dump_counter);
+            ListGenerateNodeDump(dot_file, list, prev_idx, -1, ERROR_NODE, dump_counter);
             fprintf(dot_file, "        d%d_node_%d:s -> d%d_node_%d:s [color=\"#FF6B4A\", label=<<FONT POINT-SIZE=\"9\">LOOP</FONT><BR/>>, fontcolor=\"#FF6B4A\", dir=both];\n", dump_counter, prev_idx, dump_counter, curr_idx);
             break; 
         }
@@ -137,8 +124,8 @@ int GenerateBusyCluster(FILE* dot_file, List* list, int dump_counter)
             
             else
             {   
-                ListGenerateNodeDump(dot_file, list, curr_elem->prev, ERROR_NODE, dump_counter);
-                ListGenerateNodeDump(dot_file, list, curr_idx, ERROR_NODE, dump_counter);
+                ListGenerateNodeDump(dot_file, list, curr_elem->prev, -1, ERROR_NODE, dump_counter);
+                ListGenerateNodeDump(dot_file, list, curr_idx, -1, ERROR_NODE, dump_counter);
                 fprintf(dot_file, "        d%d_node_%d:s -> d%d_node_%d:s [color=\"#FF6B4A\", label=<<FONT POINT-SIZE=\"9\">INVALID LINK</FONT><BR/>>, fontcolor=\"#FF6B4A\", style=\"dashed\"];\n", dump_counter, curr_idx, dump_counter, curr_elem->prev);
             }
         }
@@ -149,96 +136,29 @@ int GenerateBusyCluster(FILE* dot_file, List* list, int dump_counter)
         }
 
         if (curr_elem->next != -1 && curr_elem->next < list->capacity) // we suppose next is always right
-            fprintf(dot_file, "        d%d_node_%d:n -> d%d_node_%d:p [splines=false];\n", dump_counter, curr_idx, dump_counter, curr_elem->next);
+            fprintf(dot_file, "        d%d_node_%d:n -> d%d_node_%d:p [splines=false, constraint=false];\n", dump_counter, curr_idx, dump_counter, curr_elem->next);
         
         prev_idx = curr_idx;
         curr_idx = list->data[curr_idx].next;
         elem_counter++;
     }
 
-    fprintf(dot_file, "    }\n\n");
-
-    return 0;
+    return 0;   
 }
 
-int GenerateFreeCluster(FILE* dot_file, List* list, int dump_counter)
+int GenerateAllNodes(FILE* dot_file, List* list, int dump_counter)
 {
     assert(dot_file);
     assert(list);
 
-    fprintf(dot_file, "    subgraph d%d_cluster_free_nodes {\n", dump_counter);
-    fprintf(dot_file, "        d%d_free_head_label [shape=plain, label=<\n"
-                      "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#FEF08A\" CELLPADDING=\"7\">\n"
-                      "                <TR><TD ALIGN=\"CENTER\">FREE</TD></TR>\n"
-                      "</TABLE>\n"
-                      ">];\n\n",
-                      dump_counter
-    );
-    int elem_counter = 0;
-    int curr_idx = list->free_head;
+    GenerateServiceNodes(dot_file, dump_counter);
 
-    while (curr_idx != -1)
-    {
-        if (elem_counter > list->capacity)
-        {
-            PRINT_RED("Loop found - ListPrint is stopped\n");
-            break;             
-        }
-
-        INDEX_TYPE idx_type = UNKNOWN;
-        if (curr_idx == list->free_head)  idx_type = FREE_HEAD;
-
-        else    idx_type = FREE_MIDDLE;
-        
-        ListGenerateNodeDump(dot_file, list, curr_idx, idx_type, dump_counter);
-        
-        curr_idx = list->data[curr_idx].next;
-        elem_counter++;        
-    }
-
-    elem_counter = 0;
-    curr_idx = list->free_head;
-
-    while (curr_idx != -1)
-    {   
-        if (elem_counter >= list->capacity)
-        {
-            PRINT_RED("Loop found - ListPrint is stopped\n");
-            break; 
-        }
-        
-        ListElem* curr_elem = &list->data[curr_idx];
-
-        if (curr_elem->prev != -1 && curr_elem->prev < list->capacity)
-            fprintf(dot_file, "        d%d_node_%d:p -> d%d_node_%d:n\n", dump_counter, curr_idx, dump_counter, curr_elem->prev);
-
-        if (curr_elem->next != -1 && curr_elem->next < list->capacity)
-            fprintf(dot_file, "        d%d_node_%d:n -> d%d_node_%d:p\n", dump_counter, curr_idx, dump_counter, curr_elem->next);
-        
-        curr_idx = list->data[curr_idx].next;
-        elem_counter++;
-    }
-
-    fprintf(dot_file, "    }\n\n");
-
-    return 0;
-}
-
-int GenerateLostCluster(FILE* dot_file, List* list, int dump_counter)
-{
-    assert(dot_file);
-    assert(list);
-
-    fprintf(dot_file, "    subgraph d%d_cluster_lost_nodes {\n", dump_counter);
-
-    bool* seen = (bool*)calloc(list->capacity, sizeof(bool));
-
-    // ----------------------------
-    // ITERATION THROUGH BUSY NODES
-    // ----------------------------
+    int* node_status = (int*)calloc(list->capacity, sizeof(int));
+    for (int i = 0; i < list->capacity; i++) node_status[i] = LOST;  // default status is LOST
 
     int elem_counter = 0;
     int curr_idx = list->head;
+    bool* seen = (bool*)calloc(list->capacity, sizeof(bool));
 
     while (curr_idx != -1)
     {   
@@ -247,15 +167,14 @@ int GenerateLostCluster(FILE* dot_file, List* list, int dump_counter)
             PRINT_RED("Loop found - ListPrint is stopped\n");
             break; 
         }
-        
+
         seen[curr_idx] = true;
+
+        node_status[curr_idx] = BUSY;
+        
         curr_idx = list->data[curr_idx].next;
         elem_counter++;
     }
-
-    // ----------------------------
-    // ITERATION THROUGH FREE NODES
-    // ----------------------------
 
     elem_counter = 0;
     curr_idx = list->free_head;
@@ -267,22 +186,292 @@ int GenerateLostCluster(FILE* dot_file, List* list, int dump_counter)
             PRINT_RED("Loop found - ListPrint is stopped\n");
             break; 
         }
-        
+
         seen[curr_idx] = true;
+
+        node_status[curr_idx] = FREE;
+        
         curr_idx = list->data[curr_idx].next;
         elem_counter++;
     }
+    
+    // --------------------------------
+    //        DRAWING ALL NODES
+    // --------------------------------
 
+    // fprintf(dot_file, "    { rank=same;\n"); // make them of the same rank
+
+    int busy_counter = 0;
     for (int i = 0; i < list->capacity; i++)
     {
-        if (!seen[i])  ListGenerateNodeDump(dot_file, list, i, LOST_NODE, dump_counter);
+        int fucking_fill_index_I_hate_so_much = -1;
+        INDEX_TYPE idx_type = MIDDLE;  // default type is MIDDLE
+        if (node_status[i] == FREE)
+        {
+            idx_type = FREE_MIDDLE;
+            if (i == list->free_head)   idx_type = FREE_HEAD;
+        }
+
+        else if (node_status[i] == BUSY)
+        {
+            if (i == list->head)   idx_type = HEAD;
+
+            else if (i == list->tail)   idx_type = TAIL;
+
+            fucking_fill_index_I_hate_so_much = busy_counter;
+            busy_counter++;
+        }
+
+        else    
+            idx_type = LOST_NODE;
+
+        ListGenerateNodeDump(dot_file, list, i, fucking_fill_index_I_hate_so_much, idx_type, dump_counter);
     }
 
-    fprintf(dot_file, "    }\n\n");
+    // fprintf(dot_file, "    }\n\n"); // closed rank
 
-    free(seen);
+    // aligning elems as they are in data array using invisible links
+    for (int i = 0; i < list->capacity - 1; i++) 
+        fprintf(dot_file, "    d%d_node_%d -> d%d_node_%d [style=invis, weight=100];\n", dump_counter, i, dump_counter, i + 1);
+    fprintf(dot_file, "\n");
+
+    // linking busy nodes
+    GenerateBusyNodesLinks(dot_file, list, dump_counter);
+
     return 0;
 }
+
+// int GenerateBusyCluster(FILE* dot_file, List* list, int dump_counter)
+// {
+//     assert(dot_file);
+//     assert(list);
+
+//     fprintf(dot_file, "    subgraph d%d_cluster_busy_nodes {\n", dump_counter);
+//     fprintf(dot_file, "        d%d_head_label [shape=plain, label=<\n"
+//                       "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#FEF08A\" CELLPADDING=\"6\">\n"
+//                       "                <TR><TD ALIGN=\"CENTER\">HEAD</TD></TR>\n"
+//                       "</TABLE>\n"
+//                       ">];\n\n",
+//                       dump_counter
+//     );
+
+//     fprintf(dot_file, "        d%d_tail_label [shape=plain, label=<\n"
+//                       "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#F6B8B8\" CELLPADDING=\"6\">\n"
+//                       "                <TR><TD ALIGN=\"CENTER\">TAIL</TD></TR>\n"
+//                       "</TABLE>\n"
+//                       ">];\n\n",
+//                       dump_counter
+//     );
+    
+//     int elem_counter = 0;
+//     int curr_idx = list->head;
+//     bool* seen = (bool*)calloc(list->capacity, sizeof(bool));
+
+//     while (curr_idx != -1)
+//     {   
+//         if (elem_counter >= list->capacity || seen[curr_idx])
+//         {
+//             PRINT_RED("Loop found - ListPrint is stopped\n");
+//             break; 
+//         }
+
+//         seen[curr_idx] = true;
+
+//         INDEX_TYPE idx_type = UNKNOWN;
+//         if (curr_idx == list->head)  idx_type = HEAD;
+        
+//         else if (curr_idx == list->tail)  idx_type = TAIL;
+
+//         else    idx_type = MIDDLE;
+        
+//         ListGenerateNodeDump(dot_file, list, curr_idx, -1, idx_type, dump_counter);
+        
+//         curr_idx = list->data[curr_idx].next;
+//         elem_counter++;
+//     }
+
+//     for (int i = 0; i < list->capacity; i++)    seen[i] = false;
+
+//     elem_counter = 0;
+//     int prev_idx = -1;
+//     curr_idx = list->head;
+
+//     while (curr_idx != -1)
+//     {   
+//         if (elem_counter >= list->capacity || seen[curr_idx])
+//         {
+//             PRINT_RED("Loop found - ListPrint is stopped\n");
+//             ListGenerateNodeDump(dot_file, list, curr_idx, -1, ERROR_NODE, dump_counter);
+//             ListGenerateNodeDump(dot_file, list, prev_idx, -1, ERROR_NODE, dump_counter);
+//             fprintf(dot_file, "        d%d_node_%d:s -> d%d_node_%d:s [color=\"#FF6B4A\", label=<<FONT POINT-SIZE=\"9\">LOOP</FONT><BR/>>, fontcolor=\"#FF6B4A\", dir=both];\n", dump_counter, prev_idx, dump_counter, curr_idx);
+//             break; 
+//         }
+
+//         seen[curr_idx] = true;
+        
+//         ListElem* curr_elem = &list->data[curr_idx];
+
+//         if (seen[curr_elem->next])  // loop found
+//         {
+//             prev_idx = curr_idx;
+//             curr_idx = list->data[curr_idx].next;
+//             elem_counter++;
+//             continue; // loop will be found on the next iteration
+//         }
+
+//         if (curr_elem->prev != -1 && curr_elem->prev < list->capacity && curr_elem->prev >= 0)
+//         {   
+//             if (curr_elem->prev == prev_idx)  // right back link
+//                 fprintf(dot_file, "        d%d_node_%d:p -> d%d_node_%d:n [splines=false];\n", dump_counter, curr_idx, dump_counter, curr_elem->prev);
+            
+//             else
+//             {   
+//                 ListGenerateNodeDump(dot_file, list, curr_elem->prev, -1, ERROR_NODE, dump_counter);
+//                 ListGenerateNodeDump(dot_file, list, curr_idx, -1, ERROR_NODE, dump_counter);
+//                 fprintf(dot_file, "        d%d_node_%d:s -> d%d_node_%d:s [color=\"#FF6B4A\", label=<<FONT POINT-SIZE=\"9\">INVALID LINK</FONT><BR/>>, fontcolor=\"#FF6B4A\", style=\"dashed\"];\n", dump_counter, curr_idx, dump_counter, curr_elem->prev);
+//             }
+//         }
+
+//         else if (curr_idx != list->head || (curr_idx == list->head && curr_elem->prev != -1)) // only head prev can be -1
+//         {
+//             fprintf(dot_file, "        d%d_node_%d:p -> d%d_node_%d:p [color=\"#FF6B4A\", label=<<FONT POINT-SIZE=\"9\">INDEX OUT</FONT><BR/>>, fontcolor=\"#FF6B4A\", style=\"dotted\"];\n", dump_counter, curr_idx, dump_counter, curr_idx);
+//         }
+
+//         if (curr_elem->next != -1 && curr_elem->next < list->capacity) // we suppose next is always right
+//             fprintf(dot_file, "        d%d_node_%d:n -> d%d_node_%d:p [splines=false];\n", dump_counter, curr_idx, dump_counter, curr_elem->next);
+        
+//         prev_idx = curr_idx;
+//         curr_idx = list->data[curr_idx].next;
+//         elem_counter++;
+//     }
+
+//     fprintf(dot_file, "    }\n\n");
+
+//     return 0;
+// }
+
+// int GenerateFreeCluster(FILE* dot_file, List* list, int dump_counter)
+// {
+//     assert(dot_file);
+//     assert(list);
+
+//     fprintf(dot_file, "    subgraph d%d_cluster_free_nodes {\n", dump_counter);
+//     fprintf(dot_file, "        d%d_free_head_label [shape=plain, label=<\n"
+//                       "            <TABLE BORDER=\"1\" CELLBORDER=\"0\" COLOR=\"#354733\" BGCOLOR=\"#FEF08A\" CELLPADDING=\"7\">\n"
+//                       "                <TR><TD ALIGN=\"CENTER\">FREE</TD></TR>\n"
+//                       "</TABLE>\n"
+//                       ">];\n\n",
+//                       dump_counter
+//     );
+//     int elem_counter = 0;
+//     int curr_idx = list->free_head;
+
+//     while (curr_idx != -1)
+//     {
+//         if (elem_counter > list->capacity)
+//         {
+//             PRINT_RED("Loop found - ListPrint is stopped\n");
+//             break;             
+//         }
+
+//         INDEX_TYPE idx_type = UNKNOWN;
+//         if (curr_idx == list->free_head)  idx_type = FREE_HEAD;
+
+//         else    idx_type = FREE_MIDDLE;
+        
+//         ListGenerateNodeDump(dot_file, list, curr_idx, idx_type, dump_counter);
+        
+//         curr_idx = list->data[curr_idx].next;
+//         elem_counter++;        
+//     }
+
+//     elem_counter = 0;
+//     curr_idx = list->free_head;
+
+//     while (curr_idx != -1)
+//     {   
+//         if (elem_counter >= list->capacity)
+//         {
+//             PRINT_RED("Loop found - ListPrint is stopped\n");
+//             break; 
+//         }
+        
+//         ListElem* curr_elem = &list->data[curr_idx];
+
+//         if (curr_elem->prev != -1 && curr_elem->prev < list->capacity)
+//             fprintf(dot_file, "        d%d_node_%d:p -> d%d_node_%d:n\n", dump_counter, curr_idx, dump_counter, curr_elem->prev);
+
+//         if (curr_elem->next != -1 && curr_elem->next < list->capacity)
+//             fprintf(dot_file, "        d%d_node_%d:n -> d%d_node_%d:p\n", dump_counter, curr_idx, dump_counter, curr_elem->next);
+        
+//         curr_idx = list->data[curr_idx].next;
+//         elem_counter++;
+//     }
+
+//     fprintf(dot_file, "    }\n\n");
+
+//     return 0;
+// }
+
+// int GenerateLostCluster(FILE* dot_file, List* list, int dump_counter)
+// {
+//     assert(dot_file);
+//     assert(list);
+
+//     fprintf(dot_file, "    subgraph d%d_cluster_lost_nodes {\n", dump_counter);
+
+//     bool* seen = (bool*)calloc(list->capacity, sizeof(bool));
+
+//     // ----------------------------
+//     // ITERATION THROUGH BUSY NODES
+//     // ----------------------------
+
+//     int elem_counter = 0;
+//     int curr_idx = list->head;
+
+//     while (curr_idx != -1)
+//     {   
+//         if (elem_counter >= list->capacity || seen[curr_idx])
+//         {
+//             PRINT_RED("Loop found - ListPrint is stopped\n");
+//             break; 
+//         }
+        
+//         seen[curr_idx] = true;
+//         curr_idx = list->data[curr_idx].next;
+//         elem_counter++;
+//     }
+
+//     // ----------------------------
+//     // ITERATION THROUGH FREE NODES
+//     // ----------------------------
+
+//     elem_counter = 0;
+//     curr_idx = list->free_head;
+
+//     while (curr_idx != -1)
+//     {   
+//         if (elem_counter >= list->capacity || seen[curr_idx])
+//         {
+//             PRINT_RED("Loop found - ListPrint is stopped\n");
+//             break; 
+//         }
+        
+//         seen[curr_idx] = true;
+//         curr_idx = list->data[curr_idx].next;
+//         elem_counter++;
+//     }
+
+//     for (int i = 0; i < list->capacity; i++)
+//     {
+//         if (!seen[i])  ListGenerateNodeDump(dot_file, list, i, LOST_NODE, dump_counter);
+//     }
+
+//     fprintf(dot_file, "    }\n\n");
+
+//     free(seen);
+//     return 0;
+// }
 
 int ListGenerateDotFile(List* list, const char* dot_filename, int dump_counter)
 {
@@ -307,9 +496,7 @@ int ListGenerateDotFile(List* list, const char* dot_filename, int dump_counter)
     fprintf(dot_file, "    node [shape=plain, fontcolor=\"#212529\", fontname=\"Arial\", fontsize=11];\n");
     fprintf(dot_file, "    edge [color=\"#354733\", arrowsize=0.6]\n\n");
 
-    GenerateLostCluster(dot_file, list, dump_counter);
-    GenerateFreeCluster(dot_file, list, dump_counter);
-    GenerateBusyCluster(dot_file, list, dump_counter);
+    GenerateAllNodes(dot_file, list, dump_counter);
 
     fprintf(dot_file, "}\n");
 
@@ -359,28 +546,23 @@ int ListGenerateHtmlFile(List* list,
             "    <meta charset=\"UTF-8\">\n"
             "    <title>List Dump History</title>\n"
             "    <style>\n"
-            "        /* Общий фон страницы — мягкий светло-серый */\n"
             "        body { font-family: Arial, sans-serif; background: #f1f5f9; padding: 30px; color: #1e293b; }\n"
             "        \n"
-            "        /* Главный заголовок всей страницы сверху */\n"
             "        h2 { text-align: center; color: #0f172a; margin-bottom: 30px; font-size: 28px; }\n"
             "        \n"
-            "        /* СТИЛЬ КАРТОЧКИ ДЛЯ КАЖДОГО ДЕЙСТВИЯ */\n"
             "        .dump-section {\n"
             "            max-width: 1200px;\n"
-            "            margin: 0 auto 40px auto; /* Центрируем карточку и делаем отступ снизу */\n"
+            "            margin: 0 auto 40px auto;\n"
             "            background: white;\n"
             "            padding: 24px;\n"
             "            border-radius: 8px;\n"
             "            border: 1px solid #e2e8f0;\n"
             "            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);\n"
-            "            text-align: center; /* Центрирует внутренние элементы */\n"
+            "            text-align: center;\n"
             "        }\n"
             "        \n"
-            "        /* Заголовок внутри карточки шага */\n"
             "        .dump-section h3 { margin-top: 0; margin-bottom: 15px; font-size: 18px; color: #1e40af; }\n"
             "        \n"
-            "        /* Красивая штриховая линия из тире */\n"
             "        .dash-line {\n"
             "            border: none;\n"
             "            border-top: 2px dashed #cbd5e1;\n"
@@ -388,19 +570,17 @@ int ListGenerateHtmlFile(List* list,
             "            width: 100%%;\n"
             "        }\n"
             "        \n"
-            "        /* Текстовый лог внутри карточки */\n"
             "        .light-log {\n"
             "            display: inline-block;\n"
             "            font-family: 'Courier New', monospace;\n"
             "            font-size: 14px;\n"
             "            line-height: 1.6;\n"
             "            color: #334155;\n"
-            "            text-align: left; /* Строки внутри лога ровные */\n"
+            "            text-align: left;\n"
             "            margin: 0 auto;\n"
             "            padding: 0;\n"
             "        }\n"
             "        \n"
-            "        /* Контейнер для SVG картинки графа */\n"
             "        .graph-container { overflow-x: auto; padding: 15px; border: 1px solid #f1f5f9; background: #fafafa; border-radius: 6px; }\n"
             "        svg { max-width: 100%%; height: auto; display: block; margin: 0 auto; }\n"
             "    </style>\n</head>\n<body>\n"
@@ -443,10 +623,10 @@ int ListGenerateHtmlFile(List* list,
     );
 
     int ch = 0;
-    while ((ch = fgetc(svg_file)) != EOF)  fputc(ch, html_file);  // copying svg file to html
-    
-    fprintf(html_file, "        </div>\n"); // Закрыли graph-container
-    fprintf(html_file, "    </div>\n\n");   // Закрыли dump-section карточки
+    while ((ch = fgetc(svg_file)) != EOF)  fputc(ch, html_file);
+
+    fprintf(html_file, "        </div>\n");
+    fprintf(html_file, "    </div>\n\n");   
 
     fclose(svg_file);
     fclose(html_file);
@@ -464,6 +644,6 @@ int ListGraphDump(List* list,
     assert(list);
 
     ListGenerateHtmlFile(list, html_filename, file, line, func);
-    
+
     return 0;
 }
