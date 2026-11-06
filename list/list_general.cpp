@@ -633,6 +633,40 @@ int ListLinearize(List* list)
     return 0;
 }
 
+int ListComparator(const void* a, const void* b) {
+    list_elem_t val_a = ((const ListElem*)a)->value;
+    list_elem_t val_b = ((const ListElem*)b)->value;
+    
+    if (val_a < val_b) return -1;
+
+    if (val_a > val_b) return 1;
+
+    return 0;
+}
+
+int ListSort(List* list)
+{
+    assert(list);
+    ASSERT_LIST_OK(list);
+
+    ListLinearize(list);
+
+    qsort(list->data, list->size, sizeof(ListElem), ListComparator);
+
+    // make the indexes right
+    for (int i = 0; i < list->size - 1; i++)
+    {
+        list->data[i].prev = i - 1;
+        list->data[i].next = i + 1;
+    }
+
+    // processing tail separately
+    list->data[list->size - 1].prev = list->size - 2;
+    list->data[list->size - 1].next = -1;  // no next elem for tail
+
+    return 0;
+}
+
 void ListDestroy(List* list)
 {
     if (list == NULL)  return;

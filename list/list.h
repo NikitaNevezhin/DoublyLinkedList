@@ -92,6 +92,12 @@ int            ListFindValue            (List* list, list_elem_t value);  // ret
 
 int            ListRfindValue           (List* list, list_elem_t value);  // returns seq_index
 
+int            ListLinearize            (List* list);
+
+int            ListComparator           (const void* a, const void* b);
+
+int            ListSort                 (List* list);
+
 int            ListClear                (List* list);
 
 ListStatus     ListVerify               (List* list);
@@ -121,8 +127,6 @@ int            GenerateServiceNodes     (FILE* dot_file, int dump_counter);
 int            GenerateBusyNodesLinks   (FILE* dot_file, List* list, int dump_counter);
 
 int            GenerateAllNodes         (FILE* dot_file, List* list, int dump_counter);
-
-int            ListLinearize            (List* list);
 
 
 #endif
