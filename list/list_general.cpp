@@ -36,6 +36,10 @@ int ListInit(List* list, int capacity)
     LIST_DUMP(list);
     #endif
 
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
     return 0;
 }
 
@@ -126,6 +130,9 @@ int ListAppend(List* list, list_elem_t value)
 {
     assert(list);
     ASSERT_LIST_OK(list);
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
 
     int free_idx = ListGetFreeIndex(list);
 
@@ -161,6 +168,10 @@ int ListAppend(List* list, list_elem_t value)
 
     list->size++;
     ASSERT_LIST_OK(list);
+
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
     return 0;
 }
 
@@ -168,6 +179,10 @@ int ListPrepend(List* list, list_elem_t value)
 {
     assert(list);
     ASSERT_LIST_OK(list);
+
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
 
     int free_idx = ListGetFreeIndex(list);
 
@@ -202,6 +217,10 @@ int ListPrepend(List* list, list_elem_t value)
     #endif
 
     list->size++;
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
     return 0;
 }
 
@@ -209,6 +228,10 @@ int ListInsert(List* list, list_elem_t value, int seq_idx)
 {
     assert(list);
     ASSERT_LIST_OK(list);
+
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
 
     if (seq_idx < 0 || seq_idx > list->size)
     {
@@ -272,13 +295,40 @@ int ListInsert(List* list, list_elem_t value, int seq_idx)
     #endif
 
     list->size++;
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
     return 0;
+}
+
+int ListInsertBefore(List* list, list_elem_t value, int seq_idx)
+{
+    assert(list);
+    ASSERT_LIST_OK(list);
+
+    return ListInsert(list, value, seq_idx);
+}
+
+int ListInsertAfter(List* list, list_elem_t value, int seq_idx)
+{
+    assert(list);
+    ASSERT_LIST_OK(list);
+
+    if (seq_idx != list->tail)
+        return ListInsert(list, value, seq_idx + 1);
+
+    return ListInsert(list, value, seq_idx); // in case we trying to insert after tail - it's the same as inserting in tail
 }
 
 int ListRemove(List* list, int seq_idx)
 {
     assert(list);
     ASSERT_LIST_OK(list);
+
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
 
     if (seq_idx < 0 || seq_idx >= list->size)
     {
@@ -330,6 +380,10 @@ int ListRemove(List* list, int seq_idx)
     #endif
 
     list->size--;
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
     return 0;
 }
 
@@ -379,6 +433,10 @@ int ListClear(List* list)
     assert(list);
     ASSERT_LIST_OK(list);
 
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
     list->size = 0;
     list->head = -1;
     list->tail = -1;
@@ -394,6 +452,10 @@ int ListClear(List* list)
     list->data[list->capacity - 1].next = -1; // last elem has no next elem
 
     ASSERT_LIST_OK(list);
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
     return 0;
 }
 
@@ -505,6 +567,10 @@ void ListDestroy(List* list)
     if (list == NULL)  return;
 
     ASSERT_LIST_OK(list);
+
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
 
     if (list->data != NULL)
     {   

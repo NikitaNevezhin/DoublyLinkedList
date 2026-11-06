@@ -10,6 +10,8 @@
 #include "list_error.h"
 #include "assert_list_ok.h"
 
+#define GRAPH_DUMP_EACH_STEP
+
 typedef int list_elem_t;
 
 const long long     DATA_LEFT_CANARY   = 0xDEDDEDDED;
@@ -79,6 +81,10 @@ int            ListAppend               (List* list, list_elem_t value);  // add
 int            ListPrepend              (List* list, list_elem_t value);
 
 int            ListInsert               (List* list, list_elem_t value, int seq_idx); // gets sequence index, not data index
+
+int            ListInsertBefore         (List* list, list_elem_t value, int seq_idx);
+
+int            ListInsertAfter          (List* list, list_elem_t value, int seq_idx);
 
 int            ListRemove               (List* list, int seq_idx);
 

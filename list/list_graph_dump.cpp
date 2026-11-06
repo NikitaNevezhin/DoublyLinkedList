@@ -194,17 +194,39 @@ int GenerateAllNodes(FILE* dot_file, List* list, int dump_counter)
         curr_idx = list->data[curr_idx].next;
         elem_counter++;
     }
+
+    int* idx_info = (int*)calloc(list->capacity, sizeof(int));  // -1 if not busy, seq_elem if busy
+
+    for (int i = 0; i < list->capacity; i++) idx_info[i] = -1;
+
+    int seq_idx_counter = 0;
+    curr_idx = list->head;
+    seen = (bool*)calloc(list->capacity, sizeof(bool));
+    elem_counter = 0;
+
+    while (curr_idx != -1)
+    {   
+        if (elem_counter >= list->capacity || seen[curr_idx])
+        {
+            PRINT_RED("Loop found - ListPrint is stopped\n");
+            break; 
+        }
+
+        seen[curr_idx] = true;
+
+        idx_info[curr_idx] = seq_idx_counter;
+        
+        curr_idx = list->data[curr_idx].next;
+        elem_counter++;
+        seq_idx_counter++;
+    }
     
     // --------------------------------
     //        DRAWING ALL NODES
     // --------------------------------
 
-    // fprintf(dot_file, "    { rank=same;\n"); // make them of the same rank
-
-    int busy_counter = 0;
     for (int i = 0; i < list->capacity; i++)
     {
-        int fucking_fill_index_I_hate_so_much = -1;
         INDEX_TYPE idx_type = MIDDLE;  // default type is MIDDLE
         if (node_status[i] == FREE)
         {
@@ -217,15 +239,12 @@ int GenerateAllNodes(FILE* dot_file, List* list, int dump_counter)
             if (i == list->head)   idx_type = HEAD;
 
             else if (i == list->tail)   idx_type = TAIL;
-
-            fucking_fill_index_I_hate_so_much = busy_counter;
-            busy_counter++;
         }
 
         else    
             idx_type = LOST_NODE;
 
-        ListGenerateNodeDump(dot_file, list, i, fucking_fill_index_I_hate_so_much, idx_type, dump_counter);
+        ListGenerateNodeDump(dot_file, list, i, idx_info[i], idx_type, dump_counter);
     }
 
     // fprintf(dot_file, "    }\n\n"); // closed rank
@@ -631,7 +650,7 @@ int ListGenerateHtmlFile(List* list,
     fclose(svg_file);
     fclose(html_file);
 
-    remove(dot_filename);
+    // remove(dot_filename);
     remove(svg_filename);
 
     dump_counter++;
