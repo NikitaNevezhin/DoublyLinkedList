@@ -10,7 +10,7 @@
 #include "list_error.h"
 #include "assert_list_ok.h"
 
-#define GRAPH_DUMP_EACH_STEP
+// #define GRAPH_DUMP_EACH_STEP
 
 typedef int list_elem_t;
 
@@ -116,12 +116,13 @@ int            ListGenerateHtmlFile     (List* list,
 int            ListGraphDump            (List* list,
                                          const char* html_filename, const char* file, int line, const char* func);
 
-int GenerateServiceNodes(FILE* dot_file, int dump_counter);
+int            GenerateServiceNodes     (FILE* dot_file, int dump_counter);
 
-int GenerateBusyNodesLinks(FILE* dot_file, List* list, int dump_counter);
+int            GenerateBusyNodesLinks   (FILE* dot_file, List* list, int dump_counter);
 
-int GenerateAllNodes(FILE* dot_file, List* list, int dump_counter);
+int            GenerateAllNodes         (FILE* dot_file, List* list, int dump_counter);
 
+int            ListLinearize            (List* list);
 
 
 #endif

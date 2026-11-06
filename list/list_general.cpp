@@ -562,6 +562,77 @@ void ListDump(List* list, const char* file, int line, const char* func)
     getchar();
 }
 
+int ListLinearize(List* list)
+{
+    assert(list);
+    ASSERT_LIST_OK(list);
+
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
+    if (list->size == 0) return 0;
+
+    ListElem* temp_data = (ListElem*)calloc(list->capacity, sizeof(ListElem));
+    bool* seen = (bool*)calloc(list->capacity, sizeof(bool));
+
+    if (temp_data == NULL || seen == NULL)
+    {
+        PRINT_RED("calloc failed in %s\n", __func__);
+        return 1;
+    }
+
+    int curr_idx = list->head;
+    int new_idx = 0;
+    
+    while (curr_idx != -1)
+    {
+        if (seen[curr_idx] || new_idx >= list->capacity)
+        {
+            PRINT_RED("LOOP FOUND %s\n", __func__);
+            return 1;
+        }
+
+        temp_data[new_idx].value = list->data[curr_idx].value;
+        temp_data[new_idx].prev = new_idx - 1;
+        temp_data[new_idx].next = new_idx + 1;
+
+        curr_idx = list->data[curr_idx].next;
+        new_idx++;
+    }
+
+    temp_data[list->size - 1].next = -1;  // tail has no next elem
+
+    if (list->size - 1 < list->capacity - 1) list->free_head = list->size;
+
+    else list->free_head = -1;
+
+    for (int i = list->free_head; i < list->capacity - 1; i++)
+    {
+        temp_data[i].value = EMPTY;
+        temp_data[i].prev = -1;
+        temp_data[i].next = i + 1;
+    }
+
+    if (list->free_head != -1)
+    {
+        temp_data[list->capacity - 1].value = EMPTY;
+        temp_data[list->capacity - 1].prev = -1;
+        temp_data[list->capacity - 1].next = -1;
+    }
+
+    free(list->data);
+    list->data = temp_data;
+    list->head = 0;
+    list->tail = list->size - 1;
+
+    #ifdef GRAPH_DUMP_EACH_STEP
+    LIST_GRAPH_DUMP(list, "graph_dump.html");
+    #endif
+
+    return 0;
+}
+
 void ListDestroy(List* list)
 {
     if (list == NULL)  return;
